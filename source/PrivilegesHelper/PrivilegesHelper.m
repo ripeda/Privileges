@@ -1,13 +1,13 @@
 /*
  PrivilegesHelper.m
  Copyright 2016-2022 SAP SE
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,12 +44,12 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 {
     self = [super init];
     if (self != nil) {
-        
+
         // Set up our XPC listener to handle requests on our Mach service.
         self->_listener = [[NSXPCListener alloc] initWithMachServiceName:kHelperToolMachServiceName];
         [self->_listener setDelegate:self];
     }
-    
+
     return self;
 }
 
@@ -57,7 +57,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 {
     // Tell the XPC listener to start processing requests.
     [_listener resume];
-    
+
     // run until _shouldTerminate is true and network operations have been finished
     while (!(_shouldTerminate && !_networkOperation)) { [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:20.0]]; }
 }
@@ -69,9 +69,20 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     assert(listener == _listener);
 #pragma unused(listener)
     assert(newConnection != nil);
-    
+
     BOOL acceptConnection = NO;
-    
+
+// Skip code signature verification in DEBUG mode
+#ifdef DEBUG
+    acceptConnection = YES;
+
+    newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(HelperToolProtocol)];
+    newConnection.exportedObject = self;
+    [newConnection resume];
+
+    return acceptConnection;
+#endif
+
     // see how we have been signed and make sure only processes with the same signing authority can connect.
     // additionally the calling application must have the same version number as this helper and must be one
     // of the components using a bundle identifier starting with "corp.sap.privileges"
@@ -82,27 +93,27 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     if (signingAuth) {
         NSString *reqString = [NSString stringWithFormat:@"anchor trusted and certificate leaf [subject.CN] = \"%@\" and info [CFBundleShortVersionString] >= \"%@\" and info [CFBundleIdentifier] = corp.sap.privileges*", signingAuth, requiredVersion];
         SecTaskRef taskRef = SecTaskCreateWithAuditToken(NULL, ((ExtendedNSXPCConnection*)newConnection).auditToken);
-    
+
         if (taskRef) {
 
             if (SecTaskValidateForRequirement(taskRef, (__bridge CFStringRef)(reqString)) == errSecSuccess) {
                 acceptConnection = YES;
-                
+
                 newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(HelperToolProtocol)];
                 newConnection.exportedObject = self;
                 [newConnection resume];
-                
+
             } else {
                 os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Code signature verification failed");
             }
-            
+
             CFRelease(taskRef);
         }
-        
+
     } else {
         os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Failed to get code signature: %{public}@", error);
     }
-    
+
     return acceptConnection;
 }
 
@@ -114,31 +125,31 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     OSStatus err;
     OSStatus junk;
     AuthorizationRef authRef;
-    
+
     assert(command != nil);
-    
+
     authRef = NULL;
-    
+
     // First check that authData looks reasonable.
     error = nil;
     if ( (authData == nil) || ([authData length] != sizeof(AuthorizationExternalForm)) ) {
         error = [NSError errorWithDomain:NSOSStatusErrorDomain code:paramErr userInfo:nil];
     }
-    
+
     // Create an authorization ref from that the external form data contained within.
-    
+
     if (error == nil) {
         err = AuthorizationCreateFromExternalForm([authData bytes], &authRef);
-        
+
         // Authorize the right associated with the command.
-        
+
         if (err == errAuthorizationSuccess) {
             AuthorizationItem   oneRight = { NULL, 0, NULL, 0 };
             AuthorizationRights rights   = { 1, &oneRight };
-            
+
             oneRight.name = [[MTAuthCommon authorizationRightForCommand:command] UTF8String];
             assert(oneRight.name != NULL);
-            
+
             err = AuthorizationCopyRights(
                                           authRef,
                                           &rights,
@@ -151,12 +162,12 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
             error = [NSError errorWithDomain:NSOSStatusErrorDomain code:err userInfo:nil];
         }
     }
-    
+
     if (authRef != NULL) {
         junk = AuthorizationFree(authRef, 0);
         assert(junk == errAuthorizationSuccess);
     }
-    
+
     return error;
 }
 
@@ -193,65 +204,65 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 {
     NSString *errorMsg = nil;
     NSError *error = [self checkAuthorization:authData command:_cmd];
-    
+
     if (!error) {
-        
+
         if (userName) {
-            
+
             // get the user identity
             CBIdentity *userIdentity = [CBIdentity identityWithName:userName
                                                           authority:[CBIdentityAuthority defaultIdentityAuthority]];
-            
+
             if (userIdentity) {
-                
+
                 // get the group identity
                 CBGroupIdentity *groupIdentity = [CBGroupIdentity groupIdentityWithPosixGID:kMTAdminGroupID
                                                                                   authority:[CBIdentityAuthority localIdentityAuthority]];
-                
+
                 if (groupIdentity) {
-                    
+
                     CSIdentityRef csUserIdentity = [userIdentity CSIdentity];
                     CSIdentityRef csGroupIdentity = [groupIdentity CSIdentity];
-                    
+
                     // add or remove the user to/from the group
                     if (remove) {
                         CSIdentityRemoveMember(csGroupIdentity, csUserIdentity);
                     } else {
                         CSIdentityAddMember(csGroupIdentity, csUserIdentity);
                     }
-                    
+
                     // commit changes to the identity store to update the group
                     if (CSIdentityCommit(csGroupIdentity, NULL, NULL)) {
-                        
+
                         // re-check the group membership. this seems to update some caches or so. without this re-checking
                         // sometimes the system does not recognize the changes of the group membership instantly.
                         [MTIdentity getGroupMembershipForUser:userName groupID:kMTAdminGroupID error:nil];
-                        
+
                         // log the privilege change
                         NSString *logMessage = [NSString stringWithFormat:@"SAPCorp: User %@ has now %@ rights", userName, (remove) ? @"standard user" : @"admin"];
                         if ([reason length] > 0) { logMessage = [logMessage stringByAppendingFormat:@" for the following reason: %@", reason]; }
                         os_log(OS_LOG_DEFAULT, "%{public}@", logMessage);
-                        
+
                         // if remote logging has been configured, we send the log message to the remote
                         // logging server as well
                         NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"corp.sap.privileges"];
-                        
+
                         if ([userDefaults objectIsForcedForKey:kMTDefaultsRemoteLogging]) {
-                            
+
                             // get the required configuration data
                             NSDictionary *remoteLogging = [userDefaults dictionaryForKey:kMTDefaultsRemoteLogging];
                             NSString *serverType = [remoteLogging objectForKey:kMTDefaultsRLServerType];
                             NSString *serverAddress = [remoteLogging objectForKey:kMTDefaultsRLServerAddress];
-                            
+
                             if ([[serverType lowercaseString] isEqualToString:@"syslog"] && serverAddress) {
-                                
+
                                 NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
                                 BOOL enableTCP = [[remoteLogging objectForKey:kMTDefaultsRLEnableTCP] boolValue];
                                 NSDictionary *syslogOptions = [remoteLogging objectForKey:kMTDefaultsRLSyslogOptions];
                                 NSUInteger logFacility = ([syslogOptions objectForKey:kMTDefaultsRLSyslogFacility]) ? [[syslogOptions valueForKey:kMTDefaultsRLSyslogFacility] integerValue] : MTSyslogMessageFacilityAuth;
                                 NSUInteger logSeverity = ([syslogOptions objectForKey:kMTDefaultsRLSyslogSeverity]) ? [[syslogOptions valueForKey:kMTDefaultsRLSyslogSeverity] integerValue] : MTSyslogMessageSeverityInformational;
                                 NSUInteger maxSize = ([syslogOptions objectForKey:kMTDefaultsRLSyslogMaxSize]) ? [[syslogOptions valueForKey:kMTDefaultsRLSyslogMaxSize] integerValue] : 0;
-                                
+
                                 MTSyslogMessage *message = [[MTSyslogMessage alloc] init];
                                 [message setFacility:logFacility];
                                 [message setSeverity:logSeverity];
@@ -259,52 +270,52 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                                 [message setMessageId:(remove) ? @"PRIV_S" : @"PRIV_A"];
                                 if (maxSize > MTSyslogMessageMaxSize480) { [message setMaxSize:maxSize]; }
                                 [message setEventMessage:logMessage];
-                                 
+
                                 _syslogServer = [[MTSyslog alloc] initWithServerAddress:serverAddress
                                                                              serverPort:(serverPort > 0) ? serverPort : 514
                                                                             andProtocol:(enableTCP) ? MTSocketTransportLayerProtocolTCP : MTSocketTransportLayerProtocolUDP
                                                           ];
-                                
+
                                 _networkOperation = YES;
                                 [_syslogServer sendMessage:message completionHandler:^(NSError *networkError) {
-                                    
+
                                     if (networkError) {
                                         os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging failed: %{public}@", networkError);
                                     }
-                                    
+
                                     dispatch_async(dispatch_get_main_queue(), ^{ self->_networkOperation = NO; });
                                 }];
-                                
+
                             } else {
                                 os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging is misconfigured");
                             }
                         }
-                        
+
                     } else {
                         errorMsg = @"Identity could not be committed to the authority database";
                     }
-                    
+
                 }  else {
                     errorMsg = @"Missing group identity";
                 }
-                
+
             }  else {
                 errorMsg = @"Missing user identity";
             }
-            
+
         }  else {
             errorMsg = @"User name is missing";
         }
-    
+
     } else {
          errorMsg = @"Authorization check failed";
     }
-    
+
     if ([errorMsg length] > 0) {
         NSDictionary *errorDetail = [NSDictionary dictionaryWithObjectsAndKeys:errorMsg, NSLocalizedDescriptionKey, nil];
         error = [NSError errorWithDomain:@"corp.sap.privileges" code:100 userInfo:errorDetail];
     }
-    
+
     reply(error);
 }
 

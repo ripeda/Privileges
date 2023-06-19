@@ -40,11 +40,11 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 - (id)init
 {
     self = [super init];
-    
+
     if (self != nil) {
         OSStatus err;
         AuthorizationExternalForm extForm;
-        
+
         self->_listener = [NSXPCListener serviceListener];
         assert(self->_listener != nil);     // this code must be run from an XPC service
 
@@ -58,11 +58,11 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
             self->_authorization = [[NSData alloc] initWithBytes:&extForm length:sizeof(extForm)];
         }
         assert(err == errAuthorizationSuccess);
-        
+
         self->_queue = [[NSOperationQueue alloc] init];
         [self->_queue setMaxConcurrentOperationCount:1];
     }
-    
+
     return self;
 }
 
@@ -85,8 +85,19 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     assert(listener == self.listener);
     #pragma unused(listener)
     assert(newConnection != nil);
-    
+
     BOOL acceptConnection = NO;
+
+// Skip code signature verification in DEBUG mode
+#ifdef DEBUG
+    acceptConnection = YES;
+
+    newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(PrivilegesXPCProtocol)];
+    newConnection.exportedObject = self;
+    [newConnection resume];
+
+    return acceptConnection;
+#endif
 
     // see how we have been signed and make sure only processes with the same signing authority can connect.
     // additionally the calling application must have the same version number as this helper and must be one
@@ -98,27 +109,27 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     if (signingAuth) {
         NSString *reqString = [NSString stringWithFormat:@"anchor trusted and certificate leaf [subject.CN] = \"%@\" and info [CFBundleShortVersionString] >= \"%@\" and info [CFBundleIdentifier] = corp.sap.privileges*", signingAuth, requiredVersion];
         SecTaskRef taskRef = SecTaskCreateWithAuditToken(NULL, ((ExtendedNSXPCConnection*)newConnection).auditToken);
-       
+
         if (taskRef) {
 
             if (SecTaskValidateForRequirement(taskRef, (__bridge CFStringRef)(reqString)) == errSecSuccess) {
                    acceptConnection = YES;
-                   
+
                 newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(PrivilegesXPCProtocol)];
                 newConnection.exportedObject = self;
                 [newConnection resume];
-    
+
             } else {
                     os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Code signature verification failed");
             }
-                
+
             CFRelease(taskRef);
         }
-            
+
     } else {
         os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Failed to get code signature: %{public}@", error);
     }
-        
+
     return acceptConnection;
 }
 
@@ -127,7 +138,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 {
     Boolean success;
     CFErrorRef error;
-    
+
     success = SMJobBless(
         kSMDomainSystemLaunchd,
         CFSTR("corp.sap.privileges.helper"),
@@ -158,11 +169,11 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     // Without this authorization will fail because the app is sandboxed.
 {
     // Because we access helperToolConnection, we have to run on the operation queue.
-    
+
     [self.queue addOperationWithBlock:^{
 
         // Create our connection to the helper tool if it's not already in place.
-        
+
         if (self.helperToolConnection == nil) {
             self.helperToolConnection = [[NSXPCConnection alloc] initWithMachServiceName:kHelperToolMachServiceName options:NSXPCConnectionPrivileged];
             self.helperToolConnection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(HelperToolProtocol)];
