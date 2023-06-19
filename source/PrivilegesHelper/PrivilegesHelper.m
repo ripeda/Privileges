@@ -287,9 +287,9 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
                                     dispatch_async(dispatch_get_main_queue(), ^{ self->_networkOperation = NO; });
                                 }];
-                            } else if ([[serverType lowercaseString] isEqualToString:@"http"] && serverAddress) {
+                            } else if (([[serverType lowercaseString] isEqualToString:@"http"] ||  [[serverType lowercaseString] isEqualToString:@"https"]) && serverAddress) {
                                 /**
-                                Implement a basic HTTP client to send a json-encoded message to the remote logging server
+                                Implement a basic HTTP/HTTPS client to send a json-encoded message to the remote logging server
                                 **/
 
                                 NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
@@ -300,13 +300,18 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDictionary options:NSJSONWritingPrettyPrinted error:&jsonError];
 
                                 // create url
-                                NSString *serverURL = [NSString stringWithFormat:@"http://%@:%ld", serverAddress, (serverPort > 0) ? serverPort : 80];
+                                NSString *serverURL = [NSString stringWithFormat:@"%@://%@:%ld", serverType, serverAddress, (serverPort > 0) ? serverPort : (([[serverType lowercaseString] isEqualToString:@"http"]) ? 80 : 443)];
+                                if ([serverURL hasSuffix:@".local"]) {
+                                    serverURL = [serverURL substringToIndex:[serverURL length] - 6];
+                                }
 
                                 // create the request
                                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverURL]];
                                 [request setHTTPMethod:@"POST"];
                                 [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
                                 [request setHTTPBody:jsonData];
+
+                                os_log(OS_LOG_DEFAULT, "SAPCorp: Remote logging request: %{public}@", request);
 
                                 // send the request
                                 _networkOperation = YES;
@@ -320,6 +325,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                                 }];
 
                                 [task resume];
+
                             } else {
                                 os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging is misconfigured");
                             }
