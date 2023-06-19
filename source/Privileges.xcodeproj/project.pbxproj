@@ -532,7 +532,6 @@
 					};
 					ADA960601C905F36002AEFEA = {
 						CreatedOnToolsVersion = 7.3;
-						DevelopmentTeam = 7R5ZEU67FQ;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
@@ -545,17 +544,14 @@
 					};
 					ADDEA83A1C905F9300B32C77 = {
 						CreatedOnToolsVersion = 7.3;
-						DevelopmentTeam = 7R5ZEU67FQ;
 						ProvisioningStyle = Manual;
 					};
 					ADDEA8451C905FBB00B32C77 = {
 						CreatedOnToolsVersion = 7.3;
-						DevelopmentTeam = 7R5ZEU67FQ;
 						ProvisioningStyle = Manual;
 					};
 					ADE676BD1CAD569800B4C920 = {
 						CreatedOnToolsVersion = 7.3;
-						DevelopmentTeam = 7R5ZEU67FQ;
 						ProvisioningStyle = Manual;
 					};
 				};
@@ -815,10 +811,12 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = PrivilegesXPC/Info.plist;
@@ -842,10 +840,12 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = PrivilegesXPC/Info.plist;
@@ -973,9 +973,11 @@
 				ASSETCATALOG_COMPILER_STANDALONE_ICON_BEHAVIOR = default;
 				CODE_SIGN_ENTITLEMENTS = Privileges/Privileges.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_ONLY_ACTIVE_RESOURCES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1004,9 +1006,11 @@
 				ASSETCATALOG_COMPILER_STANDALONE_ICON_BEHAVIOR = default;
 				CODE_SIGN_ENTITLEMENTS = Privileges/Privileges.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_ONLY_ACTIVE_RESOURCES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1032,10 +1036,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "PrivilegesHelper/PrivilegesHelper-Info.plist";
 				MARKETING_VERSION = 1.5.3;
@@ -1055,10 +1061,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "PrivilegesHelper/PrivilegesHelper-Info.plist";
 				MARKETING_VERSION = 1.5.3;
@@ -1079,10 +1087,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/PrivilegesCLI/PrivilegesCLI-Info.plist";
 				MARKETING_VERSION = 1.5.3;
@@ -1098,10 +1108,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/PrivilegesCLI/PrivilegesCLI-Info.plist";
 				MARKETING_VERSION = 1.5.3;
@@ -1131,10 +1143,12 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1184,10 +1198,12 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = (
