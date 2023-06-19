@@ -24,7 +24,6 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent ./products/Build/Products/Release/Privileges.app ./products/Privileges-RELEASE.app.zip
           ditto -c -k --sequesterRsrc --keepParent ./products/Build/Products/Debug/Privileges.app ./products/Privileges-DEBUG.app.zip
 
-
       - name: Upload Privileges.app (Release)
         uses: actions/upload-artifact@v2
         with:
