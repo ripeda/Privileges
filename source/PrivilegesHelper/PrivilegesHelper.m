@@ -24,6 +24,7 @@
 #import <Collaboration/Collaboration.h>
 #import <errno.h>
 #import <os/log.h>
+#import <IOKit/IOKitLib.h>
 
 @interface PrivilegesHelper () <NSXPCListenerDelegate, HelperToolProtocol>
 @property (atomic, strong, readwrite) NSXPCListener *listener;
@@ -254,8 +255,9 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                             NSString *serverType = [remoteLogging objectForKey:kMTDefaultsRLServerType];
                             NSString *serverAddress = [remoteLogging objectForKey:kMTDefaultsRLServerAddress];
 
-                            if ([[serverType lowercaseString] isEqualToString:@"syslog"] && serverAddress) {
+                            os_log(OS_LOG_DEFAULT, "SAPCorp: Remote logging is enabled. Server type: %{public}@, server address: %{public}@", serverType, serverAddress);
 
+                            if ([[serverType lowercaseString] isEqualToString:@"syslog"] && serverAddress) {
                                 NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
                                 BOOL enableTCP = [[remoteLogging objectForKey:kMTDefaultsRLEnableTCP] boolValue];
                                 NSDictionary *syslogOptions = [remoteLogging objectForKey:kMTDefaultsRLSyslogOptions];
@@ -285,7 +287,39 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
                                     dispatch_async(dispatch_get_main_queue(), ^{ self->_networkOperation = NO; });
                                 }];
+                            } else if ([[serverType lowercaseString] isEqualToString:@"http"] && serverAddress) {
+                                /**
+                                Implement a basic HTTP client to send a json-encoded message to the remote logging server
+                                **/
 
+                                NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
+
+                                // Generate the json data using createJsonDictionaryForLoggingServer
+                                NSDictionary *jsonDictionary = [self createJsonDictionaryForLoggingServer:userName remove:remove reason:reason];
+                                NSError *jsonError = nil;
+                                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDictionary options:NSJSONWritingPrettyPrinted error:&jsonError];
+
+                                // create url
+                                NSString *serverURL = [NSString stringWithFormat:@"http://%@:%ld", serverAddress, (serverPort > 0) ? serverPort : 80];
+
+                                // create the request
+                                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverURL]];
+                                [request setHTTPMethod:@"POST"];
+                                [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                                [request setHTTPBody:jsonData];
+
+                                // send the request
+                                _networkOperation = YES;
+                                NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *networkError) {
+
+                                    if (networkError) {
+                                        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging failed: %{public}@", networkError);
+                                    }
+
+                                    dispatch_async(dispatch_get_main_queue(), ^{ self->_networkOperation = NO; });
+                                }];
+
+                                [task resume];
                             } else {
                                 os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging is misconfigured");
                             }
@@ -317,6 +351,80 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     }
 
     reply(error);
+}
+
+
+/*
+    Funtion that creates a json dictionary for logging server
+    Takes following inputs:
+    - userName: user name of the user
+    - remove: boolean value that indicates if the user is being removed or added
+    - reason: reason for the change
+
+    Returns a json dictionary with following properties:
+    - message: log message
+    - reason: reason for the change
+    - isElevated: boolean value that indicates if the user is being removed or added
+    - username: user name of the user
+    - timestamp: timestamp of the change
+    - hostname: hostname of the machine
+    - machineId: machine id of the machine
+    - machineName: machine name of the machine
+    - serialNumber: serial number of the machine
+*/
+- (NSDictionary *)createJsonDictionaryForLoggingServer:(NSString *)userName remove:(BOOL)remove reason:(NSString *)reason
+{
+    NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
+
+    // "message"
+    NSString *logMessage = [NSString stringWithFormat:@"SAPCorp: User %@ has now %@ rights", userName, (remove) ? @"standard" : @"elevated"];
+    [jsonDict setObject:logMessage forKey:@"message"];
+    // "reason"
+    if ([reason length] > 0) { [jsonDict setObject:reason forKey:@"reason"]; }
+    // "isElevated"
+    [jsonDict setObject:[NSNumber numberWithBool:!remove] forKey:@"isElevated"];
+    // "username"
+    [jsonDict setObject:userName forKey:@"username"];
+    // "timestamp"
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZZZZZ"];
+    NSString *timeStamp = [dateFormatter stringFromDate:[NSDate date]];
+    [jsonDict setObject:timeStamp forKey:@"timestamp"];
+    // "hostname"
+    NSString *hostName = [[NSHost currentHost] localizedName];
+    if ([hostName length] > 0) { [jsonDict setObject:hostName forKey:@"hostname"]; }
+    // "machineId"
+    NSString *machineId = [[NSUUID UUID] UUIDString];
+    if ([machineId length] > 0) { [jsonDict setObject:machineId forKey:@"machineId"]; }
+    // "machineName"
+    NSString *machineName = [[NSHost currentHost] localizedName];
+    if ([machineName length] > 0) { [jsonDict setObject:machineName forKey:@"machineName"]; }
+    // "serialNumber"
+    NSString *serialNumber = [self getSerialNumber];
+    if ([serialNumber length] > 0) { [jsonDict setObject:serialNumber forKey:@"serialNumber"]; }
+
+
+    return jsonDict;
+}
+
+// Ref: https://stackoverflow.com/a/15451318
+- (NSString *)getSerialNumber
+{
+    NSString *serial = nil;
+    io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault,
+                                     IOServiceMatching("IOPlatformExpertDevice"));
+    if (platformExpert) {
+        CFTypeRef serialNumberAsCFString =
+        IORegistryEntryCreateCFProperty(platformExpert,
+                                        CFSTR(kIOPlatformSerialNumberKey),
+                                        kCFAllocatorDefault, 0);
+        if (serialNumberAsCFString) {
+            serial = CFBridgingRelease(serialNumberAsCFString);
+        }
+
+        IOObjectRelease(platformExpert);
+    }
+    return serial;
 }
 
 - (void)quitHelperTool
