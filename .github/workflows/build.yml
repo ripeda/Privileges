@@ -13,25 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Run xcodebuild (Release)
-        run: xcodebuild build -project ./source/Privileges.xcodeproj -scheme Privileges -derivedDataPath ./products -configuration Release
-
-      - name: Run xcodebuild (Debug)
-        run: xcodebuild build -project ./source/Privileges.xcodeproj -scheme Privileges -derivedDataPath ./products -configuration Debug
-
-      - name: Compress Privileges.app
-        run:  |
-          ditto -c -k --sequesterRsrc --keepParent ./products/Build/Products/Release/Privileges.app ./products/Privileges-RELEASE.app.zip
-          ditto -c -k --sequesterRsrc --keepParent ./products/Build/Products/Debug/Privileges.app ./products/Privileges-DEBUG.app.zip
+      - name: Build Project
+        run: ./Build-Project.tool
 
       - name: Upload Privileges.app (Release)
         uses: actions/upload-artifact@v2
         with:
           name: Privileges-RELEASE.app.zip
-          path: ./products/Privileges-RELEASE.app.zip
+          path: ./products/Package/RIPEDA-Privileges-Release.pkg
 
       - name: Upload Privileges.app (Debug)
         uses: actions/upload-artifact@v2
         with:
           name: Privileges-DEBUG.app.zip
-          path: ./products/Privileges-DEBUG.app.zip
+          path: ./products/Package/RIPEDA-Privileges-Debug.pkg

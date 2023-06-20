@@ -9,6 +9,8 @@ Changes include:
 * Support for HTTP/HTTPS logging server
 * Log messages through JSON payload
 * Allow `ReasonRequired` and `DockToggleTimeout` to coexist
+* Skip Codesign checks on DEBUG builds
+  * Allows for testing of unsigned binaries
 
 For documentation, please see the original repository:
 
