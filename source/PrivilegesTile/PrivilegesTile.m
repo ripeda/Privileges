@@ -1,13 +1,13 @@
 /*
  PrivilegesTile.m
  Copyright 2016-2022 SAP SE
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,38 +45,38 @@ extern void SACLockScreenImmediate (void);
 - (void)setDockTile:(NSDockTile*)dockTile
 {
     if (dockTile) {
-        
+
         // initialize our userDefaults to get the managed preferences
         _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"corp.sap.privileges"];
- 
+
         // get the name of the current user
         _currentUser = NSUserName();
-        
+
         // get the path to our command line tool
         _pluginBundle = [NSBundle bundleForClass:[self class]];
         NSString *pluginPath = [_pluginBundle bundlePath];
         NSString *mainbundlePath = [[[pluginPath stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];
         _mainBundle = [NSBundle bundleWithPath:mainbundlePath];
         _cliPath = [_mainBundle pathForResource:@"PrivilegesCLI" ofType:nil];
-        
+
         // register an observer to watch for privilege changes
         _privilegesObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"corp.sap.PrivilegesChanged"
                                                                                            object:_currentUser
                                                                                             queue:nil
                                                                                        usingBlock:^(NSNotification *notification) {
-            
+
             BOOL isAdmin = [self checkAdminPrivilegesForUser:self->_currentUser error:nil];
-            
+
             // invalidate the timer if the user is not admin anymore
             if (!isAdmin) { [self invalidateToggleTimer]; }
-            
+
             // update the Dock tile icon ...
             [self updateDockTileIcon:dockTile isAdmin:isAdmin];
-            
+
             // ... and also the Dock tile's badge
             [self updateDockTileBadge:dockTile];
                                                                                        }];
-        
+
         // register an observer for the toggle timeout
         _timeoutObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"corp.sap.PrivilegesTimeout"
                                                                                         object:_currentUser
@@ -86,17 +86,17 @@ extern void SACLockScreenImmediate (void);
             NSInteger minutesLeft = ceil([self->_timerExpires timeIntervalSinceNow]/60);
 
             if (minutesLeft > 0) {
-                
+
                 // just update the Dock tile's badge
                 [self updateDockTileBadge:dockTile];
-                
+
             } else {
-                    
+
                 // toggle privileges
                 [self togglePrivileges];
             }
         }];
-        
+
         // define the keys in our prefs we need to observe
         _keysToObserve = [[NSArray alloc] initWithObjects:
                           kMTDefaultsToggleTimeout,
@@ -107,21 +107,21 @@ extern void SACLockScreenImmediate (void);
                           kMTDefaultsRequireReason,
                           nil
                           ];
-        
+
         // Start observing our preferences to make sure we'll get notified as soon as someting changes (e.g. a configuration
         // profile has been installed). Unfortunately we cannot use the NSUserDefaultsDidChangeNotification here, because
         // it wouldn't be called if changes to our prefs would be made from outside this application.
         for (NSString *aKey in _keysToObserve) {
             [_userDefaults addObserver:self forKeyPath:aKey options:NSKeyValueObservingOptionNew context:nil];
         }
-        
+
         // make sure the Dock tile has the correct icon on load and enforce
         // privileges, if a configuration profile has been already installed
         // and the enforced privileges does not match the current ones.
         [self enforcePrivileges];
-    
+
     } else {
-        
+
         // If dockTile is nil, the item has been removed from Dock, so we remove our observers.
         // Actually this is not really needed here but is best practice.
         if (_privilegesObserver || _timeoutObserver) {
@@ -145,55 +145,58 @@ extern void SACLockScreenImmediate (void);
                                                                  action:@selector(togglePrivileges)
                                                           keyEquivalent:@""];
          [privilegesItem setTarget:self];
-         
+
          NSString *limitToUser = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToUser]) ? [_userDefaults objectForKey:kMTDefaultsLimitToUser] : nil;
          NSString *limitToGroup = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToGroup]) ? [_userDefaults objectForKey:kMTDefaultsLimitToGroup] : nil;
          BOOL reasonRequired = ([_userDefaults objectIsForcedForKey:kMTDefaultsRequireReason]) ? [_userDefaults boolForKey:kMTDefaultsRequireReason] : NO;
-         
+
+        /*
+        Disabled to allow DockToggleTimeout with ReasonRequired
          if (([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges] && ([[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"admin"] || [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"user"] || [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"none"])) ||
              (limitToUser && ![[limitToUser lowercaseString] isEqualToString:_currentUser]) ||
              (!limitToUser && limitToGroup && ![MTIdentity getGroupMembershipForUser:_currentUser groupName:limitToGroup error:nil]) ||
              ([_userDefaults objectIsForcedForKey:kMTDefaultsAuthRequired] && [_userDefaults boolForKey:kMTDefaultsAuthRequired]) || reasonRequired) {
              [privilegesItem setEnabled:NO];
          }
-         
+        */
+
          [_dockTileMenu addItem:privilegesItem];
      }
-         
+
      // insert a separator
      [_dockTileMenu addItem:[NSMenuItem separatorItem]];
-     
+
      // add the "lock screen" item
      NSMenuItem *lockScreenItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedStringFromTableInBundle(@"lockScreenMenuItem", @"Localizable", _pluginBundle, nil)
                                                              action:@selector(lockScreen)
                                                       keyEquivalent:@""];
      [lockScreenItem setTarget:self];
      [_dockTileMenu addItem:lockScreenItem];
-     
+
      // add the "show login window" item
      NSMenuItem *loginWindowItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedStringFromTableInBundle(@"loginWindowMenuItem", @"Localizable", _pluginBundle, nil)
                                                              action:@selector(showLoginWindow)
                                                       keyEquivalent:@""];
      [loginWindowItem setTarget:self];
      [_dockTileMenu addItem:loginWindowItem];
-     
+
      return _dockTileMenu;
  }
- 
+
  - (void)togglePrivileges
  {
      // invalidate the timer
      [self invalidateToggleTimer];
-          
+
      NSError *userError = nil;
      BOOL isAdmin = [self checkAdminPrivilegesForUser:_currentUser error:&userError];
 
      if (!userError) {
-         
+
          [NSTask launchedTaskWithLaunchPath:_cliPath
                                   arguments:(isAdmin) ? [NSArray arrayWithObject:@"--remove"] : [NSArray arrayWithObject:@"--add"]
           ];
-         
+
          if (!isAdmin && !([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges] && ([[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"admin"] || [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"user"] || [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"none"]))) { [self startToggleTimer]; }
     }
 }
@@ -205,44 +208,44 @@ extern void SACLockScreenImmediate (void);
 
     // check if a timeout has been configured via profile
     if ([_userDefaults objectForKey:kMTDefaultsToggleTimeout]) {
-        
+
         // get the configured timeout
         timeoutValue = [_userDefaults integerForKey:kMTDefaultsToggleTimeout];
-        
+
     // or in the Privileges preferences
     } else {
-        
+
         NSString *privilegesPrefsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"/Library/Containers/corp.sap.privileges/Data/Library/Preferences/corp.sap.privileges"];
         NSDictionary *privilegesDefaults = [[NSUserDefaults standardUserDefaults] persistentDomainForName:privilegesPrefsPath];
-            
+
         if ([privilegesDefaults objectForKey:kMTDefaultsToggleTimeout]) {
-            
+
             // get the configured timeout
             timeoutValue = [[privilegesDefaults valueForKey:kMTDefaultsToggleTimeout] integerValue];
         }
     }
 
     if (timeoutValue > 0) {
-        
+
         // check if a maximum timeout value has been configured and
         // correct the timeout value if needed
         if ([_userDefaults objectForKey:kMTDefaultsToggleMaxTimeout] && ![_userDefaults objectIsForcedForKey:kMTDefaultsToggleTimeout]) {
-            
+
             // get the configured timeout
             NSInteger maxTimeoutValue = [_userDefaults integerForKey:kMTDefaultsToggleMaxTimeout];
             if (maxTimeoutValue > 0 && timeoutValue > maxTimeoutValue) { timeoutValue = maxTimeoutValue; }
         }
-        
+
         // set the toggle timeout (in seconds)
         _timerExpires = [NSDate dateWithTimeIntervalSinceNow:(timeoutValue * 60)];
-            
+
         // add observers to detect wake from sleep
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
                                                                selector:@selector(sendBadgeUpdateNotification)
                                                                    name:NSWorkspaceDidWakeNotification
                                                                  object:nil
          ];
-        
+
         // start our timer and update the badge every 60 seconds
         _toggleTimer = [NSTimer scheduledTimerWithTimeInterval:60.0
                                                         target:self
@@ -268,20 +271,20 @@ extern void SACLockScreenImmediate (void);
     NSImage *dockIcon = nil;
     NSString *soundPath = nil;
     NSString *iconName = @"appicon_";
-    
+
     NSString *limitToUser = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToUser]) ? [_userDefaults objectForKey:kMTDefaultsLimitToUser] : nil;
     NSString *limitToGroup = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToGroup]) ? [_userDefaults objectForKey:kMTDefaultsLimitToGroup] : nil;
-        
+
     if (([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges] &&
          ([[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"admin"] ||
           [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"user"] ||
           [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"none"])) ||
         (limitToUser && ![[limitToUser lowercaseString] isEqualToString:_currentUser]) ||
         (!limitToUser && limitToGroup && ![MTIdentity getGroupMembershipForUser:_currentUser groupName:limitToGroup error:nil])) {
-    
+
         iconName = [iconName stringByAppendingString:@"managed_"];
     }
-        
+
     if (isAdmin) {
         iconName = [iconName stringByAppendingString:@"unlocked"];
         soundPath = @"/System/Library/Frameworks/SecurityInterface.framework/Versions/A/Resources/lockOpening.aif";
@@ -289,20 +292,20 @@ extern void SACLockScreenImmediate (void);
         iconName = [iconName stringByAppendingString:@"locked"];
         soundPath = @"/System/Library/Frameworks/SecurityInterface.framework/Versions/A/Resources/lockClosing.aif";
     }
-    
+
     if (@available(macOS 10.16, *)) { iconName = [iconName stringByAppendingString:@"_new"]; }
     dockIcon = [_pluginBundle imageForResource:iconName];
-    
+
     if ([MTVoiceOver isEnabled]) {
         NSURL *soundURL = [NSURL fileURLWithPath:soundPath];
-        
+
         if (soundURL && [[NSFileManager defaultManager] fileExistsAtPath:soundPath]) {
             SystemSoundID soundID;
             OSStatus error = AudioServicesCreateSystemSoundID((__bridge CFURLRef)soundURL, &soundID);
             if (error == kAudioServicesNoError) { AudioServicesPlayAlertSoundWithCompletion(soundID, nil); }
         }
     }
-    
+
     if (dockIcon) {
         NSImageView *imageView = [[NSImageView alloc] init];
         [imageView setImage:dockIcon];
@@ -317,18 +320,18 @@ extern void SACLockScreenImmediate (void);
     NSInteger minutesLeft = ceil([self->_timerExpires timeIntervalSinceNow]/60);
 
     if (minutesLeft > 0 && self->_toggleTimer) {
-        
+
         // to make VoiceOver say "x minutes" instead of "x new elements", we have to append
         // the word "min" to the numeric value. This makes VoiceOver speak the remaining
         // time correctly in every language.
         if ([MTVoiceOver isEnabled]) {
             [dockTile setBadgeLabel:[NSString stringWithFormat:@"%ld min", (long)minutesLeft]];
             [[NSUserDefaults standardUserDefaults] setInteger:minutesLeft forKey:@"PrivilegesTimeLeft"];
-            
+
         } else {
             [dockTile setBadgeLabel:[NSString stringWithFormat:@"%ld", (long)minutesLeft]];
         }
-        
+
     } else {
         [dockTile setBadgeLabel:nil];
         [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"PrivilegesTimeLeft"];
@@ -341,7 +344,7 @@ extern void SACLockScreenImmediate (void);
 
         [_toggleTimer invalidate];
         _toggleTimer = nil;
-        
+
         // remove the observer
         [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     }
@@ -350,7 +353,7 @@ extern void SACLockScreenImmediate (void);
 - (BOOL)checkAdminPrivilegesForUser:(NSString*)userName error:(NSError**)error
 {
     BOOL isAdmin = [MTIdentity getGroupMembershipForUser:userName groupID:kMTAdminGroupID error:error];
-    
+
     return isAdmin;
 }
 
@@ -362,7 +365,7 @@ extern void SACLockScreenImmediate (void);
 - (void)showLoginWindow
 {
     NSString *launchPath = @"/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession";
-    
+
     if (launchPath && [[NSFileManager defaultManager] isExecutableFileAtPath:launchPath]) {
         [NSTask launchedTaskWithLaunchPath:launchPath arguments:[NSArray arrayWithObject:@"-suspend"]];
     }
@@ -383,11 +386,11 @@ extern void SACLockScreenImmediate (void);
                                                                      block:^(NSTimer* _Nonnull timer) {
             // get the remaining time
             NSInteger minutesLeft = ceil([self->_timerExpires timeIntervalSinceNow]/60);
-            
+
             // get the configured values
             NSInteger timeoutValue = [self->_userDefaults integerForKey:kMTDefaultsToggleTimeout];
             NSInteger maxTimeoutValue = [self->_userDefaults integerForKey:kMTDefaultsToggleMaxTimeout];
-            
+
             // restart the timer if the configured timeout or the configured maximum timeout
             // is below the timer's current value
             if ((timeoutValue > 0 && timeoutValue < minutesLeft) ||
@@ -397,12 +400,12 @@ extern void SACLockScreenImmediate (void);
                 [self enforcePrivileges];
             }
          }];
-        
+
     } else if (object == _userDefaults && ([keyPath isEqualToString:kMTDefaultsEnforcePrivileges] ||
                                            [keyPath isEqualToString:kMTDefaultsLimitToUser] ||
                                            [keyPath isEqualToString:kMTDefaultsLimitToGroup] ||
                                            [keyPath isEqualToString:kMTDefaultsRequireReason])) {
-        
+
         // workaround for bug that is causing observeValueForKeyPath to be called multiple times.
         // so every notification resets the timer and if we got no new notifications for 2 seconds,
         // we evaluate the changes.
@@ -410,7 +413,7 @@ extern void SACLockScreenImmediate (void);
         _fixTimeoutObserverTimer = [NSTimer scheduledTimerWithTimeInterval:2.0
                                                             repeats:NO
                                                               block:^(NSTimer* _Nonnull timer) {
-             
+
             // make sure the changes are applied and the Dock tile
             // displays correctly reflects the (changed) situation
             [self enforcePrivileges];
@@ -422,7 +425,7 @@ extern void SACLockScreenImmediate (void);
 {
     // check current privileges if we are managed ...
     if ([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges]) {
-        
+
         BOOL isAdmin = [self checkAdminPrivilegesForUser:_currentUser error:nil];
         NSString *enforcedPrivileges = [_userDefaults objectForKey:kMTDefaultsEnforcePrivileges];
 
@@ -430,14 +433,14 @@ extern void SACLockScreenImmediate (void);
 
             // ... and toggle privileges if needed
             [self togglePrivileges];
-            
+
         } else {
-            
+
             // invalidate the timer because the privileges have been enforced
             // now. So there's no need for a timeout anymore because the current
             // privileges cannot be changed anymore.
             [self invalidateToggleTimer];
-        
+
             // update the Dock tile
             [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"corp.sap.PrivilegesChanged"
                                                                            object:_currentUser
@@ -445,9 +448,9 @@ extern void SACLockScreenImmediate (void);
                                                                           options:NSNotificationDeliverImmediately
              ];
         }
-        
+
     } else {
-    
+
         // ... or just update the Dock tile
         [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"corp.sap.PrivilegesChanged"
                                                                        object:_currentUser
