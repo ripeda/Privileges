@@ -16,14 +16,14 @@ jobs:
       - name: Build Project
         run: ./Build-Project.tool
 
-      - name: Upload Privileges.app (Release)
+      - name: Upload Privileges (Release)
         uses: actions/upload-artifact@v2
         with:
-          name: Privileges-RELEASE.app.zip
+          name: RIPEDA-Privileges-Release.pkg
           path: ./products/Package/RIPEDA-Privileges-Release.pkg
 
-      - name: Upload Privileges.app (Debug)
+      - name: Upload Privileges (Debug)
         uses: actions/upload-artifact@v2
         with:
-          name: Privileges-DEBUG.app.zip
+          name: RIPEDA-Privileges-Release.pkg
           path: ./products/Package/RIPEDA-Privileges-Debug.pkg
