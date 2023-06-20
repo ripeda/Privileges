@@ -25,5 +25,5 @@ jobs:
       - name: Upload Privileges (Debug)
         uses: actions/upload-artifact@v2
         with:
-          name: RIPEDA-Privileges-Release.pkg
+          name: RIPEDA-Privileges-Debug.pkg
           path: ./products/Package/RIPEDA-Privileges-Debug.pkg
