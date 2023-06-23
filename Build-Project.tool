@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+import time
 import argparse
 import subprocess
 import plistlib
+import threading
 
 from pathlib import Path
 
@@ -54,15 +56,26 @@ class GeneratePrivileges:
         if Path(APP_BUILD_PATH).exists():
             subprocess.run(["rm", "-rf", APP_BUILD_PATH])
 
+        threads = []
+
         for variant in ["Debug", "Release"]:
-            print(f"APP: Building {variant} variant...")
-            result = subprocess.run(["/usr/bin/xcodebuild", "build", "-project", PROJECT_SOURCE, "-scheme", PROJECT_SCHEME, "-derivedDataPath", APP_BUILD_PATH, "-configuration", variant], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode != 0:
-                print("Failed to build application.")
-                print(result.stdout)
-                if result.stderr:
-                    print(result.stderr)
-                sys.exit(1)
+
+            def _build(self, variant) -> None:
+                print(f"APP: Building {variant} variant...")
+                result = subprocess.run(["/usr/bin/xcodebuild", "build", "-project", PROJECT_SOURCE, "-scheme", PROJECT_SCHEME, "-derivedDataPath", APP_BUILD_PATH + "/" + variant, "-configuration", variant], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if result.returncode != 0:
+                    print("Failed to build application.")
+                    print(result.stdout)
+                    if result.stderr:
+                        print(result.stderr)
+                    sys.exit(1)
+
+            thread = threading.Thread(target=_build, args=(self, variant))
+            thread.start()
+            threads.append(thread)
+
+        while any(thread.is_alive() for thread in threads):
+            time.sleep(1)
 
 
     def _build_package(self) -> None:
@@ -84,7 +97,7 @@ class GeneratePrivileges:
             Path(PKG_BUILD_PATH, variant, "Applications").mkdir(parents=True, exist_ok=True)
 
             # Copy application to package directory
-            subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Build package
             result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
