@@ -7,6 +7,7 @@
 exec >/dev/null 2>&1
 
 helperPlistPath="$3/Library/LaunchDaemons/corp.sap.privileges.helper.plist"
+watchdogPlistPath="$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist"
 
 /usr/bin/killall Privileges
 
@@ -15,8 +16,12 @@ if [[ "$3" = "/" ]]; then
 	/bin/launchctl bootout system "$helperPlistPath"
 fi
 
+# Unload the watchdog plist
+/bin/launchctl unload "$watchdogPlistPath"
+
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/corp.sap.privileges.helper" \
-            "$3/Applications/Privileges.app"
+            "$3/Applications/Privileges.app" \
+            "$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist"
 
 exit 0

@@ -3,3 +3,6 @@
 xcschememanagement.plist
 /source/Privileges/Info.plist
 /products
+/source/build
+/build
+/source/PrivilegesWatchdog/dist/RIPEDA-Privileges-Watchdog

@@ -14,6 +14,8 @@ from pathlib import Path
 PROJECT_SOURCE: str = "source/Privileges.xcodeproj"
 PROJECT_SCHEME: str = "Privileges"
 
+DAEMON_SOURCE: str = "source/PrivilegesWatchdog"
+
 APP_BUILD_PATH: str = "products/Application"
 PKG_BUILD_PATH: str = "products/Package"
 
@@ -32,6 +34,7 @@ class GeneratePrivileges:
 
         print(f"Building Privileges {self._version}...")
         self._build_application()
+        self._build_launch_daemon()
         self._build_package()
 
 
@@ -95,9 +98,13 @@ class GeneratePrivileges:
 
             # Create package directory structure
             Path(PKG_BUILD_PATH, variant, "Applications").mkdir(parents=True, exist_ok=True)
+            Path(PKG_BUILD_PATH, variant, "Library/LaunchDaemons").mkdir(parents=True, exist_ok=True)
 
             # Copy application to package directory
             subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            # Copy launch daemon to package directory from RIPEDA-Privileges-Watchdog
+            subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchDaemons")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Build package
             result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -107,6 +114,28 @@ class GeneratePrivileges:
                 if result.stderr:
                     print(result.stderr)
                 sys.exit(1)
+
+
+    def _build_launch_daemon(self) -> None:
+        """
+        Call pyinstaller to build the launch daemon.
+        """
+
+        if Path(DAEMON_SOURCE, "dist").exists():
+            subprocess.run(["rm", "-rf", Path(DAEMON_SOURCE, "dist")])
+
+        print("LD:  Building launch daemon...")
+        result = subprocess.run(["pyinstaller", Path(DAEMON_SOURCE, "watch.spec"), "--distpath", Path(DAEMON_SOURCE, "dist")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            print("Failed to build launch daemon.")
+            print(result.stdout)
+            if result.stderr:
+                print(result.stderr)
+            sys.exit(1)
+
+        for variant in ["Debug", "Release"]:
+            # copy to each app bundle
+            subprocess.run(["cp", "-R", Path(DAEMON_SOURCE, "dist", "RIPEDA-Privileges-Watchdog"), Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app", "Contents", "Resources", "RIPEDA-Privileges-Watchdog")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 if __name__ == "__main__":
