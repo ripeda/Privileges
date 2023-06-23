@@ -368,15 +368,17 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     - reason: reason for the change
 
     Returns a json dictionary with following properties:
-    - message: log message
-    - reason: reason for the change
-    - isElevated: boolean value that indicates if the user is being removed or added
-    - username: user name of the user
-    - timestamp: timestamp of the change
-    - hostname: hostname of the machine
-    - machineId: machine id of the machine
-    - machineName: machine name of the machine
-    - serialNumber: serial number of the machine
+    {
+        "message": "SAPCorp: User <user name> has now <standard/elevated> rights",
+        "reason": "<reason for the change>",
+        "isElevated": <true/false>,
+        "username": "<user name>",
+        "timestamp": "<timestamp>",
+        "hostname": "<hostname>",
+        "machineId": "<machine id>",
+        "machineName": "<machine name>",
+        "serialNumber": "<serial number>"
+    }
 */
 - (NSDictionary *)createJsonDictionaryForLoggingServer:(NSString *)userName remove:(BOOL)remove reason:(NSString *)reason
 {
