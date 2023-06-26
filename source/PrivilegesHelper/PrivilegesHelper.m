@@ -197,6 +197,64 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
 }
 
+// Check if server is up
+- (BOOL)checkServer
+{
+    __block BOOL serverUp = NO;
+
+    // Check if server is up
+    NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"corp.sap.privileges"];
+    NSDictionary *remoteLogging = [userDefaults dictionaryForKey:kMTDefaultsRemoteLogging];
+
+    if (!remoteLogging) {
+        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging not configured, treating as online");
+        return YES;
+    }
+
+    NSString *serverType = [remoteLogging objectForKey:kMTDefaultsRLServerType];
+    NSString *serverAddress = [remoteLogging objectForKey:kMTDefaultsRLServerAddress];
+    NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
+
+    if (serverType && serverAddress) {
+
+        if ([[serverType lowercaseString] isEqualToString:@"http"] || [[serverType lowercaseString] isEqualToString:@"https"]) {
+
+            // Check if server is up
+            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@:%ld", serverType, serverAddress, (long)serverPort]];
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+            [request setHTTPMethod:@"HEAD"];
+
+            NSURLSession *session = [NSURLSession sharedSession];
+            NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+
+                if (error) {
+                    os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Server is down: %{public}@", error);
+                    serverUp = NO;
+                } else {
+                    os_log(OS_LOG_DEFAULT, "SAPCorp: Server is up");
+                    serverUp = YES;
+                }
+            }];
+
+            [task resume];
+
+
+        } else {
+            // Unknown server type
+            os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Server status only supported on HTTP/HTTPS, treating as online");
+            serverUp = YES;
+        }
+
+
+    } else {
+        // No server configured
+        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! No server configured, treating as online");
+        serverUp = YES;
+    }
+
+    return serverUp;
+}
+
 - (void)changeAdminRightsForUser:(NSString*)userName
                           remove:(BOOL)remove
                           reason:(NSString*)reason
@@ -205,6 +263,16 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 {
     NSString *errorMsg = nil;
     NSError *error = [self checkAuthorization:authData command:_cmd];
+
+    if (!remove) {
+        // Call server to see if it's online
+        // Only allow users to be elevated if the server is online
+        if (![self checkServer]) {
+            errorMsg = @"Server is down, cannot elevate user";
+            error = [NSError errorWithDomain:NSOSStatusErrorDomain code:errAuthorizationDenied userInfo:@{NSLocalizedDescriptionKey: errorMsg}];
+        }
+
+    }
 
     if (!error) {
 
