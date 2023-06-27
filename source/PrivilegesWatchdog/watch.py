@@ -9,6 +9,8 @@ import subprocess
 import threading
 import enum
 import time
+import logging
+import os
 from pathlib import Path
 
 CLI_PATH: str = "/Applications/Privileges.app/Contents/Resources/PrivilegesCLI"
@@ -24,7 +26,8 @@ class PrivilegesMode(enum.Enum):
 class PrivilegesWatchdog:
 
     def __init__(self) -> None:
-        print("Privileges Watchdog started")
+        self._initialize_logging()
+        logging.info("Privileges Watchdog started")
 
         if not Path(CLI_PATH).exists():
             raise Exception(f"Privileges CLI not found at {CLI_PATH}")
@@ -44,21 +47,21 @@ class PrivilegesWatchdog:
         """
         current_privileges = self._get_current_privileges()
 
-        print(f"Current privileges: {current_privileges}")
+        logging.info(f"Current privileges: {current_privileges}")
 
         if current_privileges == PrivilegesMode.ADMIN:
-            print("User is admin, starting timer")
+            logging.info("User is admin, starting timer")
             self._start_timer()
             return
 
         global GLOBAL_TIMER
         if GLOBAL_TIMER is not None:
-            print("User is not admin, stopping timer")
+            logging.info("User is not admin, stopping timer")
             GLOBAL_TIMER.cancel()
             GLOBAL_TIMER = None
             return
 
-        print("No timer running")
+        logging.info("No timer running")
 
     def _get_current_privileges(self) -> str:
         """
@@ -77,7 +80,7 @@ class PrivilegesWatchdog:
         """
         Demote the user
         """
-        print("Demoting user")
+        logging.info("Demoting user")
         subprocess.run([CLI_PATH, "--remove"])
 
         global GLOBAL_TIMER
@@ -90,7 +93,7 @@ class PrivilegesWatchdog:
 
         This should never be called, but just in case...
         """
-        print("Promoting user")
+        logging.info("Promoting user")
         subprocess.run([CLI_PATH, "--add"])
 
 
@@ -102,6 +105,16 @@ class PrivilegesWatchdog:
         GLOBAL_TIMER = threading.Timer(TIMER_LENGTH, self._demote_user)
         GLOBAL_TIMER.start()
 
+
+    def _initialize_logging(self) -> None:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="[%(asctime)s] [%(filename)-22s] [%(levelname)-8s] [%(lineno)-3d]: %(message)s",
+            handlers=[
+                logging.FileHandler(Path(f"{'~' if os.geteuid() != 0 else ''}/Library/Logs/RIPEDA_Privileges_Watchdog.log").expanduser()),
+                logging.StreamHandler()
+            ]
+        )
 
 if __name__ == "__main__":
     PrivilegesWatchdog()

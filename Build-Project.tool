@@ -107,7 +107,7 @@ class GeneratePrivileges:
             subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchDaemons")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Build package
-            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode != 0:
                 print("Failed to build package.")
                 print(result.stdout)

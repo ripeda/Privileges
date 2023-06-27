@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>corp.sap.privileges</string>
 	<key>Label</key>
 	<string>com.ripeda.privileges-watchdog.auto-start</string>
 	<key>ProgramArguments</key>
@@ -10,9 +12,5 @@
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>StandardErrorPath</key>
-	<string>/var/log/Privileges-Watchdog-STDERR.log</string>
-	<key>StandardOutPath</key>
-	<string>/var/log/Privileges-Watchdog-STDOUT.log</string>
 </dict>
 </plist>

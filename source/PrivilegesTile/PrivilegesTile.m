@@ -150,15 +150,12 @@ extern void SACLockScreenImmediate (void);
          NSString *limitToGroup = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToGroup]) ? [_userDefaults objectForKey:kMTDefaultsLimitToGroup] : nil;
          BOOL reasonRequired = ([_userDefaults objectIsForcedForKey:kMTDefaultsRequireReason]) ? [_userDefaults boolForKey:kMTDefaultsRequireReason] : NO;
 
-        /*
-        Disabled to allow DockToggleTimeout with ReasonRequired
          if (([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges] && ([[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"admin"] || [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"user"] || [[_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"none"])) ||
              (limitToUser && ![[limitToUser lowercaseString] isEqualToString:_currentUser]) ||
              (!limitToUser && limitToGroup && ![MTIdentity getGroupMembershipForUser:_currentUser groupName:limitToGroup error:nil]) ||
              ([_userDefaults objectIsForcedForKey:kMTDefaultsAuthRequired] && [_userDefaults boolForKey:kMTDefaultsAuthRequired]) || reasonRequired) {
              [privilegesItem setEnabled:NO];
          }
-        */
 
          [_dockTileMenu addItem:privilegesItem];
      }
