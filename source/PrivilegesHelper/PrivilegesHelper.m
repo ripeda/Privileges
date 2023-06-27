@@ -211,6 +211,17 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
         return YES;
     }
 
+#ifdef DEBUG
+    /*
+        Allow tester to override this check with the presence of a file
+        Ensure standard users can touch it, as otherwise they'd be locked out
+    */
+    NSString *testFile = @"/Users/Shared/.ripeda_lock_override";
+    if ([[NSFileManager defaultManager] fileExistsAtPath:testFile]) {
+        return YES;
+    }
+#endif
+
     NSString *serverType = [remoteLogging objectForKey:kMTDefaultsRLServerType];
     NSString *serverAddress = [remoteLogging objectForKey:kMTDefaultsRLServerAddress];
     NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
@@ -225,6 +236,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
             [request setHTTPMethod:@"HEAD"];
 
             NSURLSession *session = [NSURLSession sharedSession];
+            session.configuration.timeoutIntervalForRequest = 3.0;
             NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 
                 if (error) {
@@ -236,17 +248,23 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                 }
             }];
 
+            [task resume];
+
+            while (task.state == NSURLSessionTaskStateRunning) {
+                sleep(1);
+            }
+
         } else {
             // Unknown server type
             os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Server status only supported on HTTP/HTTPS, treating as online");
-            serverUp = YES;
+            return YES;
         }
 
 
     } else {
         // No server configured
         os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! No server configured, treating as online");
-        serverUp = YES;
+        return YES;
     }
 
     return serverUp;
@@ -261,8 +279,9 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     NSString *errorMsg = nil;
     NSError *error = [self checkAuthorization:authData command:_cmd];
 
-    /*
-    if (!remove) {
+
+    if (!remove && !error) {
+        os_log(OS_LOG_DEFAULT, "SAPCorp: Elevating user: %{public}@, verifying server connection", userName);
         // Call server to see if it's online
         // Only allow users to be elevated if the server is online
         if ([self checkServer] == NO) {
@@ -276,11 +295,13 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                 [alert setMessageText:errorMsg];
                 [alert setInformativeText:@"Please try again later."];
                 [alert setAlertStyle:NSAlertStyleWarning];
+                NSImage *icon = [[NSImage alloc] initWithContentsOfFile:@"/Applications/Privileges.app/Contents/Resources/AppIcon.icns"];
+                [alert setIcon:icon];
                 [alert runModal];
             });
         }
     }
-    */
+
 
     if (!error) {
 
@@ -377,9 +398,6 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
                                 // create url
                                 NSString *serverURL = [NSString stringWithFormat:@"%@://%@:%ld", serverType, serverAddress, (serverPort > 0) ? serverPort : (([[serverType lowercaseString] isEqualToString:@"http"]) ? 80 : 443)];
-                                if ([serverURL hasSuffix:@".local"]) {
-                                    serverURL = [serverURL substringToIndex:[serverURL length] - 6];
-                                }
 
                                 // create the request
                                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverURL]];
