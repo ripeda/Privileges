@@ -236,9 +236,6 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                 }
             }];
 
-            [task resume];
-
-
         } else {
             // Unknown server type
             os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Server status only supported on HTTP/HTTPS, treating as online");
@@ -264,15 +261,26 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     NSString *errorMsg = nil;
     NSError *error = [self checkAuthorization:authData command:_cmd];
 
+    /*
     if (!remove) {
         // Call server to see if it's online
         // Only allow users to be elevated if the server is online
-        if (![self checkServer]) {
+        if ([self checkServer] == NO) {
             errorMsg = @"Server is down, cannot elevate user";
             error = [NSError errorWithDomain:NSOSStatusErrorDomain code:errAuthorizationDenied userInfo:@{NSLocalizedDescriptionKey: errorMsg}];
-        }
 
+            // Display alert to user
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSAlert *alert = [[NSAlert alloc] init];
+                [alert addButtonWithTitle:@"OK"];
+                [alert setMessageText:errorMsg];
+                [alert setInformativeText:@"Please try again later."];
+                [alert setAlertStyle:NSAlertStyleWarning];
+                [alert runModal];
+            });
+        }
     }
+    */
 
     if (!error) {
 
