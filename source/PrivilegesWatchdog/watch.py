@@ -50,7 +50,7 @@ class PrivilegesWatchdog:
         logging.info(f"Current privileges: {current_privileges}")
 
         if current_privileges == PrivilegesMode.ADMIN:
-            logging.info("User is admin, starting timer")
+            logging.info(f"User is admin, starting timer: {TIMER_LENGTH} seconds")
             self._start_timer()
             return
 

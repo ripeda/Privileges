@@ -77,10 +77,8 @@ fi
 
 # Next handle 'com.ripeda.privileges-watchdog.auto-start.plist'
 # Will already be in place, just need to set permissions and load it
-watchdogPlistPath="$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist"
+watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist"
 /bin/chmod 644 "$watchdogPlistPath"
-/usr/sbin/chown root:wheel "$watchdogPlistPath"
-launchctl load "$watchdogPlistPath"
-launchctl start com.ripeda.privileges-watchdog.auto-start
+/bin/launchctl bootstrap gui/$(id -u) "$watchdogPlistPath"
 
 exit $exitCode

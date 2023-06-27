@@ -98,13 +98,13 @@ class GeneratePrivileges:
 
             # Create package directory structure
             Path(PKG_BUILD_PATH, variant, "Applications").mkdir(parents=True, exist_ok=True)
-            Path(PKG_BUILD_PATH, variant, "Library/LaunchDaemons").mkdir(parents=True, exist_ok=True)
+            Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents").mkdir(parents=True, exist_ok=True)
 
             # Copy application to package directory
             subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Copy launch daemon to package directory from RIPEDA-Privileges-Watchdog
-            subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchDaemons")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Build package
             result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -124,7 +124,7 @@ class GeneratePrivileges:
         if Path(DAEMON_SOURCE, "dist").exists():
             subprocess.run(["rm", "-rf", Path(DAEMON_SOURCE, "dist")])
 
-        print("LD:  Building launch daemon...")
+        print("LA:  Building launch agent...")
         result = subprocess.run(["pyinstaller", Path(DAEMON_SOURCE, "watch.spec"), "--distpath", Path(DAEMON_SOURCE, "dist")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.returncode != 0:
             print("Failed to build launch daemon.")
