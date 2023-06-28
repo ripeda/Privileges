@@ -566,8 +566,6 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
         NSDictionary *plist = [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListImmutable format:&format error:&error];
 
         if (plist) {
-
-            // Get the profile with description 'Elegant Apple device management with SimpleMDM'
             NSArray *profiles = [plist objectForKey:@"_computerlevel"];
             for (NSDictionary *profile in profiles) {
                 NSString *profileDescription = [profile objectForKey:@"ProfileDescription"];
@@ -576,6 +574,13 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                     break;
                 }
             }
+        }
+    }
+
+    // If client name ends with ' Profile', strip it
+    if ([clientName length] > 0) {
+        if ([clientName hasSuffix:@" Profile"] || [clientName hasSuffix:@" profile"]) {
+            clientName = [clientName substringToIndex:[clientName length] - 8];
         }
     }
 
