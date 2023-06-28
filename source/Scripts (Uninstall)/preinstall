@@ -7,7 +7,7 @@
 exec >/dev/null 2>&1
 
 helperPlistPath="$3/Library/LaunchDaemons/corp.sap.privileges.helper.plist"
-watchdogPlistPath="$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist"
+watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist"
 
 /usr/bin/killall Privileges
 
@@ -22,7 +22,15 @@ fi
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/corp.sap.privileges.helper" \
             "$3/Applications/Privileges.app" \
-            "$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist" \
-            "$/Library/Application Support/RIPEDA/RIPEDA Client/RIPEDA-Privileges-Uninstaller.pkg"
+            "$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist" \
+            "$3/Library/Application Support/RIPEDA/RIPEDA Client/Uninstall-RIPEDA-Privileges-Client.pkg"
+
+if [[ -z $(/bin/ls -A "$3/Library/Application Support/RIPEDA/RIPEDA Client") ]]; then
+    /bin/rm -rf "$3/Library/Application Support/RIPEDA/RIPEDA Client"
+fi
+
+if [[ -z $(/bin/ls -A "$3/Library/Application Support/RIPEDA") ]]; then
+    /bin/rm -rf "$3/Library/Application Support/RIPEDA"
+fi
 
 exit 0

@@ -27,11 +27,17 @@ jobs:
       - name: Upload Privileges (Release)
         uses: actions/upload-artifact@v2
         with:
-          name: RIPEDA-Privileges-Client-Release.pkg
+          name: Install-RIPEDA-Privileges-Client-Release.pkg
           path: ./products/Package/Install-RIPEDA-Privileges-Client-Release.pkg
 
       - name: Upload Privileges (Debug)
         uses: actions/upload-artifact@v2
         with:
-          name: RIPEDA-Privileges-Client-Debug.pkg
+          name: Install-RIPEDA-Privileges-Client-Debug.pkg
           path: ./products/Package/Install-RIPEDA-Privileges-Client-Debug.pkg
+
+      - name: Upload Privileges (Uninstaller)
+        uses: actions/upload-artifact@v2
+        with:
+          name: Uninstall-RIPEDA-Privileges-Client.pkg
+          path: ./products/Package/RIPEDA-Privileges-Client.pkg

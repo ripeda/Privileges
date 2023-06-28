@@ -97,7 +97,7 @@ class GeneratePrivileges:
 
         print("PKG: Building uninstaller...")
         Path(PKG_BUILD_PATH).mkdir(parents=True, exist_ok=True)
-        result = subprocess.run(["/usr/bin/pkgbuild", "--scripts", UNINSTALL_SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, "RIPEDA-Privileges-Uninstaller.pkg"), "--nopayload"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(["/usr/bin/pkgbuild", "--scripts", UNINSTALL_SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), "--nopayload"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.returncode != 0:
             print("Failed to build uninstaller.")
             print(result.stdout)
@@ -120,10 +120,10 @@ class GeneratePrivileges:
             subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Copy uninstaller to package directory
-            subprocess.run(["cp", Path(PKG_BUILD_PATH, "RIPEDA-Privileges-Uninstaller.pkg"), Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(["cp", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Build package
-            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", INSTALL_SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", INSTALL_SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode != 0:
                 print("Failed to build package.")
                 print(result.stdout)
