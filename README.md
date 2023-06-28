@@ -8,7 +8,11 @@ Changes include:
 
 * Support for HTTP/HTTPS logging server
 * Log messages through JSON payload
-* Allow `ReasonRequired` and `DockToggleTimeout` to coexist
+* Send additional host information (ex. Client name, serial number, etc.)
+* LaunchAgent to demote after certain period of time
+  * Designed to avoid users from abusing admin privileges indefinitely
+    * Works-around `ReasonRequired` being unsupported with `DockToggleTimeout`
+  * Currently set to 10 minutes
 * Skip Codesign checks on DEBUG builds
   * Allows for testing of unsigned binaries
 
