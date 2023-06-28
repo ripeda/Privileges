@@ -22,6 +22,7 @@ fi
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/corp.sap.privileges.helper" \
             "$3/Applications/Privileges.app" \
-            "$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist"
+            "$3/Library/LaunchDaemons/com.ripeda.privileges-watchdog.auto-start.plist" \
+            "$/Library/Application Support/RIPEDA/RIPEDA Client/RIPEDA-Privileges-Uninstaller.pkg"
 
 exit 0

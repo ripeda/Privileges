@@ -19,7 +19,8 @@ DAEMON_SOURCE: str = "source/PrivilegesWatchdog"
 APP_BUILD_PATH: str = "products/Application"
 PKG_BUILD_PATH: str = "products/Package"
 
-SCRIPTS_PATH: str = "source/Scripts"
+INSTALL_SCRIPTS_PATH:   str = "source/Scripts (Install)"
+UNINSTALL_SCRIPTS_PATH: str = "source/Scripts (Uninstall)"
 
 
 class GeneratePrivileges:
@@ -91,7 +92,18 @@ class GeneratePrivileges:
 
         # Prepare scripts
         for script in ["preinstall", "postinstall"]:
-            subprocess.run(["chmod", "+x", Path(SCRIPTS_PATH, script)])
+            subprocess.run(["chmod", "+x", Path(INSTALL_SCRIPTS_PATH, script)])
+        subprocess.run(["chmod", "+x", Path(UNINSTALL_SCRIPTS_PATH, "preinstall")])
+
+        print("PKG: Building uninstaller...")
+        Path(PKG_BUILD_PATH).mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(["/usr/bin/pkgbuild", "--scripts", UNINSTALL_SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, "RIPEDA-Privileges-Uninstaller.pkg"), "--nopayload"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            print("Failed to build uninstaller.")
+            print(result.stdout)
+            if result.stderr:
+                print(result.stderr)
+            sys.exit(1)
 
         for variant in ["Debug", "Release"]:
             print(f"PKG: Building {variant} variant...")
@@ -99,6 +111,7 @@ class GeneratePrivileges:
             # Create package directory structure
             Path(PKG_BUILD_PATH, variant, "Applications").mkdir(parents=True, exist_ok=True)
             Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents").mkdir(parents=True, exist_ok=True)
+            Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client").mkdir(parents=True, exist_ok=True)
 
             # Copy application to package directory
             subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -106,8 +119,11 @@ class GeneratePrivileges:
             # Copy launch daemon to package directory from RIPEDA-Privileges-Watchdog
             subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+            # Copy uninstaller to package directory
+            subprocess.run(["cp", Path(PKG_BUILD_PATH, "RIPEDA-Privileges-Uninstaller.pkg"), Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
             # Build package
-            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", INSTALL_SCRIPTS_PATH, "--identifier", "com.github.SAP.macOS.Privileges", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode != 0:
                 print("Failed to build package.")
                 print(result.stdout)
