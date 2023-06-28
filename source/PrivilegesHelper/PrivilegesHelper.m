@@ -472,6 +472,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
         "machineId": "<machine id>",
         "machineName": "<machine name>",
         "serialNumber": "<serial number>"
+        "clientName": "<client name>"
     }
 */
 - (NSDictionary *)createJsonDictionaryForLoggingServer:(NSString *)userName remove:(BOOL)remove reason:(NSString *)reason
@@ -504,7 +505,9 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     // "serialNumber"
     NSString *serialNumber = [self getSerialNumber];
     if ([serialNumber length] > 0) { [jsonDict setObject:serialNumber forKey:@"serialNumber"]; }
-
+    // "clientName"
+    NSString *clientName = [self getClientName];
+    if ([clientName length] > 0) { [jsonDict setObject:clientName forKey:@"clientName"]; }
 
     return jsonDict;
 }
@@ -527,6 +530,56 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
         IOObjectRelease(platformExpert);
     }
     return serial;
+}
+
+- (NSString *)getClientName
+{
+    /*
+        Call 'profiles' and fetch the profile with description:
+        - ProfileDescription = 'Elegant Apple device management with SimpleMDM'
+
+        The profile's display name will be that of the client's:
+        - ProfileDisplayName = 'R&D - RIPEDA Profile'
+    */
+
+    NSString *clientName = nil;
+
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/usr/bin/profiles"];
+    [task setArguments:[NSArray arrayWithObjects:@"list", @"-output", @"stdout-xml", nil]];
+
+    NSPipe *pipe = [NSPipe pipe];
+    [task setStandardOutput:pipe];
+
+    NSFileHandle *file = [pipe fileHandleForReading];
+
+    [task launch];
+
+    NSData *data = [file readDataToEndOfFile];
+
+    [task waitUntilExit];
+
+    if ([task terminationStatus] == 0) {
+        // Load output as plist
+        NSError *error;
+        NSPropertyListFormat format;
+        NSDictionary *plist = [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListImmutable format:&format error:&error];
+
+        if (plist) {
+
+            // Get the profile with description 'Elegant Apple device management with SimpleMDM'
+            NSArray *profiles = [plist objectForKey:@"_computerlevel"];
+            for (NSDictionary *profile in profiles) {
+                NSString *profileDescription = [profile objectForKey:@"ProfileDescription"];
+                if ([profileDescription isEqualToString:@"Elegant Apple device management with SimpleMDM"]) {
+                    clientName = [profile objectForKey:@"ProfileDisplayName"];
+                    break;
+                }
+            }
+        }
+    }
+
+    return clientName;
 }
 
 - (void)quitHelperTool
