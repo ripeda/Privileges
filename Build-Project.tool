@@ -44,11 +44,7 @@ class GeneratePrivileges:
         Fetches the version from the Info.plist file.
         """
 
-        return "1.0.0"
-
-        with open("source/Privileges/Info.plist", "rb") as file:
-            plist = plistlib.load(file)
-            return plist["CFBundleShortVersionString"]
+        return "1.5.4"
 
 
     def _build_application(self) -> None:

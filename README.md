@@ -1,6 +1,6 @@
 ![PrivilegesBanner](readme_images/privileges_banner.gif)
 
-# RIPEDA's Privileges
+# RIPEDA's Privileges Client
 
 Forked variant of SAP's Privileges, with modifications for RIPEDA's workflow.
 
