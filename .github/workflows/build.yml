@@ -41,3 +41,32 @@ jobs:
         with:
           name: Uninstall-RIPEDA-Privileges-Client.pkg
           path: ./products/Package/Uninstall-RIPEDA-Privileges-Client.pkg
+
+
+      - name: Upload Privileges (Release) (on release)
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./products/Package/Install-RIPEDA-Privileges-Client-Release.pkg
+          tag: ${{ github.ref }}
+          file_glob: true
+
+
+      - name: Upload Privileges (Debug) (on release)
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./products/Package/Install-RIPEDA-Privileges-Client-Debug.pkg
+          tag: ${{ github.ref }}
+          file_glob: true
+
+      - name: Upload Privileges (Uninstaller) (on release)
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./products/Package/Uninstall-RIPEDA-Privileges-Client.pkg
+          tag: ${{ github.ref }}
+          file_glob: true
