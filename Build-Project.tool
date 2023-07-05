@@ -116,13 +116,16 @@ class GeneratePrivileges:
         # productsign
         if self._pkg_codesign_identity is not None:
             print("PKG: Signing uninstaller...")
-            result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client-signed.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode != 0:
                 print("Failed to sign uninstaller.")
                 print(result.stdout)
                 if result.stderr:
                     print(result.stderr)
                 sys.exit(1)
+            subprocess.run(["rm", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg")])
+            subprocess.run(["mv", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client-signed.pkg"), Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg")])
+
 
         for variant in ["Debug", "Release"]:
             print(f"PKG: Building {variant} variant...")
@@ -153,13 +156,15 @@ class GeneratePrivileges:
             # productsign
             if self._pkg_codesign_identity is not None:
                 print(f"PKG: Signing {variant} variant...")
-                result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg"), Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg"), Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}-signed.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 if result.returncode != 0:
                     print("Failed to sign package.")
                     print(result.stdout)
                     if result.stderr:
                         print(result.stderr)
                     sys.exit(1)
+                subprocess.run(["rm", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")])
+                subprocess.run(["mv", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}-signed.pkg"), Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")])
 
 
     def _build_launch_daemon(self) -> None:
