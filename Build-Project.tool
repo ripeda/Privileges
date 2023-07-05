@@ -26,12 +26,14 @@ UNINSTALL_SCRIPTS_PATH: str = "source/Scripts (Uninstall)"
 class GeneratePrivileges:
 
 
-    def __init__(self) -> None:
+    def __init__(self, app_codesign_identity: str, pkg_codesign_identity: str) -> None:
         """
         Initializes the build process.
         """
 
         self._version: str = self._fetch_version()
+        self._app_codesign_identity: str = "-" if app_codesign_identity is None else app_codesign_identity
+        self._pkg_codesign_identity: str = pkg_codesign_identity
 
         print(f"Building Privileges {self._version}...")
         self._build_application()
@@ -57,6 +59,7 @@ class GeneratePrivileges:
             subprocess.run(["rm", "-rf", APP_BUILD_PATH])
 
         threads = []
+        identity = self._app_codesign_identity
 
         for variant in ["Debug", "Release"]:
 
@@ -65,6 +68,15 @@ class GeneratePrivileges:
                 result = subprocess.run(["/usr/bin/xcodebuild", "build", "-project", PROJECT_SOURCE, "-scheme", PROJECT_SCHEME, "-derivedDataPath", APP_BUILD_PATH + "/" + variant, "-configuration", variant], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 if result.returncode != 0:
                     print("Failed to build application.")
+                    print(result.stdout)
+                    if result.stderr:
+                        print(result.stderr)
+                    sys.exit(1)
+
+                print(f"APP: Signing {variant} variant...")
+                result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", identity, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if result.returncode != 0:
+                    print("Failed to codesign application.")
                     print(result.stdout)
                     if result.stderr:
                         print(result.stderr)
@@ -101,6 +113,17 @@ class GeneratePrivileges:
                 print(result.stderr)
             sys.exit(1)
 
+        # productsign
+        if self._pkg_codesign_identity is not None:
+            print("PKG: Signing uninstaller...")
+            result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode != 0:
+                print("Failed to sign uninstaller.")
+                print(result.stdout)
+                if result.stderr:
+                    print(result.stderr)
+                sys.exit(1)
+
         for variant in ["Debug", "Release"]:
             print(f"PKG: Building {variant} variant...")
 
@@ -127,6 +150,17 @@ class GeneratePrivileges:
                     print(result.stderr)
                 sys.exit(1)
 
+            # productsign
+            if self._pkg_codesign_identity is not None:
+                print(f"PKG: Signing {variant} variant...")
+                result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg"), Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if result.returncode != 0:
+                    print("Failed to sign package.")
+                    print(result.stdout)
+                    if result.stderr:
+                        print(result.stderr)
+                    sys.exit(1)
+
 
     def _build_launch_daemon(self) -> None:
         """
@@ -145,6 +179,16 @@ class GeneratePrivileges:
                 print(result.stderr)
             sys.exit(1)
 
+        # codesign
+        print("LA:  Codesigning launch agent...")
+        result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", self._app_codesign_identity, Path(DAEMON_SOURCE, "dist", "RIPEDA-Privileges-Watchdog", "RIPEDA-Privileges-Watchdog.app")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            print("Failed to codesign launch daemon.")
+            print(result.stdout)
+            if result.stderr:
+                print(result.stderr)
+            sys.exit(1)
+
         for variant in ["Debug", "Release"]:
             # copy to each app bundle
             subprocess.run(["cp", "-R", Path(DAEMON_SOURCE, "dist", "RIPEDA-Privileges-Watchdog"), Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app", "Contents", "Resources", "RIPEDA-Privileges-Watchdog")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -152,7 +196,9 @@ class GeneratePrivileges:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Builds Privileges.")
-    parser.parse_args()
+    parser.add_argument("--app_signing_identity", type=str, help="App Signing identity")
+    parser.add_argument("--pkg_signing_identity", type=str, help="PKG Signing identity")
+    args = parser.parse_args()
 
-    GeneratePrivileges()
+    GeneratePrivileges(args.app_signing_identity, args.pkg_signing_identity)
 

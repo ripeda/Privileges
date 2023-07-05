@@ -10,6 +10,15 @@ jobs:
   build:
     name: Build
     runs-on: macos-latest
+
+    env:
+      APPLE_DISTRIBUTION_CERT_IDENTITY: ${{ secrets.APPLE_DISTRIBUTION_CERT_IDENTITY }}
+      APPLE_DISTRIBUTION_CERT_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+      APPLE_DISTRIBUTION_CERT_P12_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_PASSWORD }}
+      MAC_INSTALLER_CERT_IDENTITY: ${{ secrets.MAC_INSTALLER_CERT_IDENTITY }}
+      MAC_INSTALLER_CERT_P12_BASE64: ${{ secrets.MAC_INSTALLER_CERT_P12_BASE64 }}
+      MAC_INSTALLER_CERT_P12_PASSWORD: ${{ secrets.MAC_INSTALLER_CERT_P12_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -21,8 +30,20 @@ jobs:
       - name: Install dependencies
         run: pip3 install pyinstaller
 
+      - name: Import Application Distribution Certificate
+        uses: dhinakg/import-codesign-certs@master
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_PASSWORD }}
+
+      - name: Import Mac Installer Certificate
+        uses: dhinakg/import-codesign-certs@master
+        with:
+          p12-file-base64: ${{ secrets.MAC_INSTALLER_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.MAC_INSTALLER_CERT_P12_PASSWORD }}
+
       - name: Build Project
-        run: ./Build-Project.tool
+        run: ./Build-Project.tool --app_signing_identity "${{ env.APPLE_DISTRIBUTION_CERT_IDENTITY }}" --pkg_signing_identity "${{ env.MAC_INSTALLER_CERT_IDENTITY }}"
 
       - name: Upload Privileges (Release)
         uses: actions/upload-artifact@v2
@@ -68,5 +89,14 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./products/Package/Uninstall-RIPEDA-Privileges-Client.pkg
+          tag: ${{ github.ref }}
+          file_glob: true
+
+      - name: Upload sample .mobileconfig (on release)
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./Sample Profiles/RIPEDA-Privileges-Configuration.mobileconfig
           tag: ${{ github.ref }}
           file_glob: true
