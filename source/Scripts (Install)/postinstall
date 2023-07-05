@@ -81,9 +81,4 @@ watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-s
 /bin/chmod 644 "$watchdogPlistPath"
 /bin/launchctl bootstrap gui/$(id -u) "$watchdogPlistPath"
 
-
-# Finally, add app to the Dock
-defaults write com.apple.dock persistent-apps -array-add '{"tile-type"="directory-tile"; "tile-data"={"displayas"=0; "file-data"={"_CFURLString"="file:///Applications/Privileges.app"; "_CFURLStringType"=15; }; }; }'
-killall Dock
-
 exit $exitCode

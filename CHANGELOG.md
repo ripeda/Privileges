@@ -3,7 +3,7 @@
 ## 1.5.5
 - Changes org references to RIPEDA (from SAPCorp)
 - Add sample profile
-- Add app to dock during pkg install
+- Add code signing to app and packages
 
 ## 1.5.4
 - Implement support for HTTP/HTTPS logging server
