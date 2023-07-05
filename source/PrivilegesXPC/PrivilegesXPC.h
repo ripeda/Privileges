@@ -17,7 +17,7 @@ limitations under the License.
 
 #import <Foundation/Foundation.h>
 
-#define kXPCServiceName @"corp.sap.privileges.xpc"
+#define kXPCServiceName @"com.ripeda.privileges.xpc"
 
 @protocol PrivilegesXPCProtocol
 

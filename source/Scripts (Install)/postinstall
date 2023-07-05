@@ -5,7 +5,7 @@
 
 exitCode=0
 
-helperPath="$3/Applications/Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc/Contents/Library/LaunchServices/corp.sap.privileges.helper"
+helperPath="$3/Applications/Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc/Contents/Library/LaunchServices/com.ripeda.privileges.helper"
 
 if [[ -f "$helperPath" ]]; then
 
@@ -20,10 +20,10 @@ if [[ -f "$helperPath" ]]; then
 	/bin/cp -f "$helperPath" "$3/Library/PrivilegedHelperTools"
 
 	if [[ $? -eq 0 ]]; then
-		/bin/chmod 755 "$3/Library/PrivilegedHelperTools/corp.sap.privileges.helper"
+		/bin/chmod 755 "$3/Library/PrivilegedHelperTools/com.ripeda.privileges.helper"
 
 		# create the launchd plist
-		helperPlistPath="$3/Library/LaunchDaemons/corp.sap.privileges.helper.plist"
+		helperPlistPath="$3/Library/LaunchDaemons/com.ripeda.privileges.helper.plist"
 
 		/bin/cat > "$helperPlistPath" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -31,15 +31,15 @@ if [[ -f "$helperPath" ]]; then
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>corp.sap.privileges.helper</string>
+	<string>com.ripeda.privileges.helper</string>
 	<key>MachServices</key>
 	<dict>
-		<key>corp.sap.privileges.helper</key>
+		<key>com.ripeda.privileges.helper</key>
 		<true/>
 	</dict>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Library/PrivilegedHelperTools/corp.sap.privileges.helper</string>
+		<string>/Library/PrivilegedHelperTools/com.ripeda.privileges.helper</string>
 	</array>
 </dict>
 </plist>
@@ -80,5 +80,10 @@ fi
 watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist"
 /bin/chmod 644 "$watchdogPlistPath"
 /bin/launchctl bootstrap gui/$(id -u) "$watchdogPlistPath"
+
+
+# Finally, add app to the Dock
+defaults write com.apple.dock persistent-apps -array-add '{"tile-type"="directory-tile"; "tile-data"={"displayas"=0; "file-data"={"_CFURLString"="file:///Applications/Privileges.app"; "_CFURLStringType"=15; }; }; }'
+killall Dock
 
 exit $exitCode

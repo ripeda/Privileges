@@ -1,13 +1,13 @@
 /*
  PrivilegesHelper.h
  Copyright 2016-2022 SAP SE
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,7 @@
 // kHelperToolMachServiceName is the Mach service name of the helper tool.  Note that the value
 // here has to match the value in the MachServices dictionary in "PrivilegesHelper-Launchd.plist".
 
-#define kHelperToolMachServiceName @"corp.sap.privileges.helper"
+#define kHelperToolMachServiceName @"com.ripeda.privileges.helper"
 
 // HelperToolProtocol is the NSXPCConnection-based protocol implemented by the helper tool
 // and called by the app.

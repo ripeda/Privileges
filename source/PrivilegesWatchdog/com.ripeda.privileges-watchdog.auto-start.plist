@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>AssociatedBundleIdentifiers</key>
-	<string>corp.sap.privileges</string>
+	<string>com.ripeda.privileges</string>
 	<key>Label</key>
 	<string>com.ripeda.privileges-watchdog.auto-start</string>
 	<key>ProgramArguments</key>

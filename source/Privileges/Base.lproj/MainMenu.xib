@@ -182,7 +182,7 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <button identifier="corp.sap.button.default" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DdX-QW-L9X">
+                    <button identifier="com.ripeda.button.default" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DdX-QW-L9X">
                         <rect key="frame" x="350" y="13" width="117" height="33"/>
                         <constraints>
                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="80" id="aPM-oi-ALI"/>
@@ -199,7 +199,7 @@ DQ
                             <action selector="actionButtonPressed:" target="Voe-Tx-rLC" id="Nbn-Ff-qvx"/>
                         </connections>
                     </button>
-                    <button identifier="corp.sap.button.alternate" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="G9w-Su-Y6A">
+                    <button identifier="com.ripeda.button.alternate" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="G9w-Su-Y6A">
                         <rect key="frame" x="223" y="13" width="129" height="33"/>
                         <constraints>
                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="80" id="ZLq-1U-LcC"/>
@@ -330,7 +330,7 @@ DQ
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <button identifier="corp.sap.button.continue" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="y1s-bz-wac">
+                    <button identifier="com.ripeda.button.continue" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="y1s-bz-wac">
                         <rect key="frame" x="270" y="13" width="117" height="33"/>
                         <constraints>
                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="80" id="Nk8-K1-Vmi"/>

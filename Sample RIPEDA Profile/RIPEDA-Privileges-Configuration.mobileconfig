@@ -7,37 +7,65 @@
 		<dict>
 			<key>PayloadContent</key>
 			<dict>
-				<key>corp.sap.privileges</key>
+				<key>com.ripeda.privileges</key>
 				<dict>
 					<key>Forced</key>
 					<array>
 						<dict>
 							<key>mcx_preference_settings</key>
 							<dict>
-                                <!--
-                                    key: RequireAuthentication
-                                    value: a boolean
-                                    
-                                    States if authentication is required to get admin rights. If set to true the user 
-                                    is prompted for the account password (or Touch ID if available).
-                                -->
-                                <key>RequireAuthentication</key>
-                                <true/>				
+								<key>ReasonRequired</key>
+								<true/>
+								<key>ReasonMinLength</key>
+								<integer>10</integer>
+								<key>ReasonMaxLength</key>
+								<integer>100</integer>
+								<key>ReasonPresetList</key>
+								<array>
+									<dict>
+										<key>default</key>
+										<string>Modifying Printer Settings</string>
+									</dict>
+									<dict>
+										<key>default</key>
+										<string>Installing Work Package</string>
+									</dict>
+								</array>
+								<key>RemoteLogging</key>
+								<dict>
+									<key>ServerType</key>
+									<string>http</string>
+									<key>ServerAddress</key>
+									<string>RIPEDA-Management-Server.local</string>
+									<key>ServerPort</key>
+									<integer>514</integer>
+									<key>EnableTCP</key>
+									<true/>
+									<key>SyslogOptions</key>
+									<dict>
+										<key>LogFacility</key>
+										<integer>4</integer>
+										<key>LogSeverity</key>
+										<integer>6</integer>
+										<key>MaximumMessageSize</key>
+										<integer>480</integer>
+									</dict>
+								</dict>
 							</dict>
 						</dict>
 					</array>
 				</dict>
 			</dict>
 			<key>PayloadDescription</key>
-			<string/>
+			<string></string>
 			<key>PayloadDisplayName</key>
-			<string>Privileges configuration</string>
+			<string>RIPEDA Privileges configuration</string>
 			<key>PayloadEnabled</key>
 			<true/>
 			<key>PayloadIdentifier</key>
 			<string>com.apple.ManagedClient.preferences.36132147-235E-4663-ADA8-2664C67C4DD2</string>
 			<key>PayloadOrganization</key>
-			<string>SAP SE</string>
+			<string>RIPEDA Consulting Corporation</string>
 			<key>PayloadType</key>
 			<string>com.apple.ManagedClient.preferences</string>
 			<key>PayloadUUID</key>
@@ -47,15 +75,15 @@
 		</dict>
 	</array>
 	<key>PayloadDescription</key>
-	<string>Configures the Privileges app.</string>
+	<string>RIPEDA Privileges app configuration.</string>
 	<key>PayloadDisplayName</key>
-	<string>Privileges configuration</string>
+	<string>RIPEDA Privileges configuration</string>
 	<key>PayloadEnabled</key>
 	<true/>
 	<key>PayloadIdentifier</key>
 	<string>CF401A42-35CA-4DA6-9123-5A49C87ECB5A</string>
 	<key>PayloadOrganization</key>
-	<string>SAP SE</string>
+	<string>RIPEDA Consulting Corporation</string>
 	<key>PayloadRemovalDisallowed</key>
 	<true/>
 	<key>PayloadScope</key>

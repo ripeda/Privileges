@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>corp.sap.privileges.xpc</string>
+	<string>com.ripeda.privileges.xpc</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -21,11 +21,11 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2020 SAP SE. All rights reserved.</string>
+	<string>Copyright © 2023 RIPEDA Consulting Corporation. All rights reserved.</string>
 	<key>SMPrivilegedExecutables</key>
 	<dict>
-		<key>corp.sap.privileges.helper</key>
-		<string>anchor apple generic and identifier "corp.sap.privileges.helper" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "7R5ZEU67FQ")</string>
+		<key>com.ripeda.privileges.helper</key>
+		<string>anchor apple generic and identifier "com.ripeda.privileges.helper" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "2U3GKQ7U8Z")</string>
 	</dict>
 	<key>XPCService</key>
 	<dict>

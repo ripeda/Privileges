@@ -101,13 +101,13 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
     // see how we have been signed and make sure only processes with the same signing authority can connect.
     // additionally the calling application must have the same version number as this helper and must be one
-    // of the components using a bundle identifier starting with "corp.sap.privileges"
+    // of the components using a bundle identifier starting with "com.ripeda.privileges"
     NSError *error = nil;
     NSString *signingAuth = [MTAuthCommon getSigningAuthorityWithError:&error];
     NSString *requiredVersion = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
 
     if (signingAuth) {
-        NSString *reqString = [NSString stringWithFormat:@"anchor trusted and certificate leaf [subject.CN] = \"%@\" and info [CFBundleShortVersionString] >= \"%@\" and info [CFBundleIdentifier] = corp.sap.privileges*", signingAuth, requiredVersion];
+        NSString *reqString = [NSString stringWithFormat:@"anchor trusted and certificate leaf [subject.CN] = \"%@\" and info [CFBundleShortVersionString] >= \"%@\" and info [CFBundleIdentifier] = com.ripeda.privileges*", signingAuth, requiredVersion];
         SecTaskRef taskRef = SecTaskCreateWithAuditToken(NULL, ((ExtendedNSXPCConnection*)newConnection).auditToken);
 
         if (taskRef) {
@@ -120,14 +120,14 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                 [newConnection resume];
 
             } else {
-                    os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Code signature verification failed");
+                    os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Code signature verification failed");
             }
 
             CFRelease(taskRef);
         }
 
     } else {
-        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Failed to get code signature: %{public}@", error);
+        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Failed to get code signature: %{public}@", error);
     }
 
     return acceptConnection;
@@ -141,7 +141,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
     success = SMJobBless(
         kSMDomainSystemLaunchd,
-        CFSTR("corp.sap.privileges.helper"),
+        CFSTR("com.ripeda.privileges.helper"),
         self->_authRef,
         &error
     );
@@ -190,7 +190,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                 self.helperToolConnection.invalidationHandler = nil;
                 [self.queue addOperationWithBlock:^{
                     self.helperToolConnection = nil;
-                    os_log(OS_LOG_DEFAULT, "SAPCorp: Helper tool connection invalidated");
+                    os_log(OS_LOG_DEFAULT, "RIPEDA: Helper tool connection invalidated");
                 }];
             };
             #pragma clang diagnostic pop
@@ -199,7 +199,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
         // Call the helper tool to get the endpoint we need.
         [[self.helperToolConnection remoteObjectProxyWithErrorHandler:^(NSError *proxyError) {
-            os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Failed to connect to helper tool: %{public}@ / %{public}d", [proxyError domain], (int)[proxyError code]);
+            os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Failed to connect to helper tool: %{public}@ / %{public}d", [proxyError domain], (int)[proxyError code]);
             reply(nil, nil);
         }] connectWithEndpointReply:^(NSXPCListenerEndpoint *replyEndpoint) {
             reply(replyEndpoint, self.authorization);

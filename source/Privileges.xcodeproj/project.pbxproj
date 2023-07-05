@@ -13,7 +13,7 @@
 		AD1B77061C92F1BC00BBE228 /* MTIdentity.m in Sources */ = {isa = PBXBuildFile; fileRef = AD1B77041C92F1B100BBE228 /* MTIdentity.m */; };
 		AD27CAA01C96E36400464762 /* Credits.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = AD27CA9E1C96E36400464762 /* Credits.rtfd */; };
 		AD3DAA8D233A3DCA00A27AAE /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD3DAA8C233A3DCA00A27AAE /* Images.xcassets */; };
-		AD439D7F2386D6FE00B2FAD3 /* corp.sap.privileges.helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = ADDEA83B1C905F9300B32C77 /* corp.sap.privileges.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AD439D7F2386D6FE00B2FAD3 /* com.ripeda.privileges.helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = ADDEA83B1C905F9300B32C77 /* com.ripeda.privileges.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		AD703CF82385361700A8D946 /* PrivilegesXPC.m in Sources */ = {isa = PBXBuildFile; fileRef = AD703CF72385361700A8D946 /* PrivilegesXPC.m */; };
 		AD703CFA2385361700A8D946 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AD703CF92385361700A8D946 /* main.m */; };
 		AD703CFE2385361700A8D946 /* PrivilegesXPC.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = AD703CF32385361700A8D946 /* PrivilegesXPC.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -92,7 +92,7 @@
 			dstPath = Contents/Library/LaunchServices;
 			dstSubfolderSpec = 1;
 			files = (
-				AD439D7F2386D6FE00B2FAD3 /* corp.sap.privileges.helper in CopyFiles */,
+				AD439D7F2386D6FE00B2FAD3 /* com.ripeda.privileges.helper in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,7 +188,7 @@
 		ADD57FE01CB3C2C7006C5B8E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		ADD57FE11CB3C2C7006C5B8E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		ADD7710A2344899D00F4B363 /* Privileges.mobileconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Privileges.mobileconfig; sourceTree = "<group>"; };
-		ADDEA83B1C905F9300B32C77 /* corp.sap.privileges.helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = corp.sap.privileges.helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADDEA83B1C905F9300B32C77 /* com.ripeda.privileges.helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = com.ripeda.privileges.helper; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADDEA83D1C905F9300B32C77 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		ADDEA8461C905FBB00B32C77 /* PrivilegesCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PrivilegesCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADDEA8481C905FBB00B32C77 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -317,7 +317,7 @@
 			isa = PBXGroup;
 			children = (
 				ADA960611C905F36002AEFEA /* Privileges.app */,
-				ADDEA83B1C905F9300B32C77 /* corp.sap.privileges.helper */,
+				ADDEA83B1C905F9300B32C77 /* com.ripeda.privileges.helper */,
 				ADDEA8461C905FBB00B32C77 /* PrivilegesCLI */,
 				ADE676BE1CAD569800B4C920 /* PrivilegesTile.docktileplugin */,
 				AD703CF32385361700A8D946 /* PrivilegesXPC.xpc */,
@@ -482,7 +482,7 @@
 			);
 			name = PrivilegesHelper;
 			productName = PrivilegesHelper;
-			productReference = ADDEA83B1C905F9300B32C77 /* corp.sap.privileges.helper */;
+			productReference = ADDEA83B1C905F9300B32C77 /* com.ripeda.privileges.helper */;
 			productType = "com.apple.product-type.tool";
 		};
 		ADDEA8451C905FBB00B32C77 /* PrivilegesCLI */ = {
@@ -525,7 +525,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 1400;
-				ORGANIZATIONNAME = "SAP SE";
+				ORGANIZATIONNAME = "RIPEDA Consulting Corporation";
 				TargetAttributes = {
 					AD703CF22385361700A8D946 = {
 						CreatedOnToolsVersion = 11.2.1;
@@ -815,16 +815,16 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = PrivilegesXPC/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.xpc;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.xpc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -844,15 +844,15 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = PrivilegesXPC/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.xpc;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.xpc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -976,7 +976,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_ONLY_ACTIVE_RESOURCES = YES;
@@ -993,8 +993,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 1.5.4;
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges;
+				MARKETING_VERSION = 1.5.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1009,7 +1009,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_ONLY_ACTIVE_RESOURCES = YES;
@@ -1026,8 +1026,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 1.5.4;
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges;
+				MARKETING_VERSION = 1.5.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -1040,19 +1040,19 @@
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "PrivilegesHelper/PrivilegesHelper-Info.plist";
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
 					__launchd_plist,
 					"PrivilegesHelper/PrivilegesHelper-Launchd.plist",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.helper;
-				PRODUCT_NAME = corp.sap.privileges.helper;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.helper;
+				PRODUCT_NAME = com.ripeda.privileges.helper;
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -1065,19 +1065,19 @@
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "PrivilegesHelper/PrivilegesHelper-Info.plist";
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
 					__launchd_plist,
 					"PrivilegesHelper/PrivilegesHelper-Launchd.plist",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.helper;
-				PRODUCT_NAME = corp.sap.privileges.helper;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.helper;
+				PRODUCT_NAME = com.ripeda.privileges.helper;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -1091,13 +1091,13 @@
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/PrivilegesCLI/PrivilegesCLI-Info.plist";
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				OTHER_LDFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.cli;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.cli;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -1112,13 +1112,13 @@
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/PrivilegesCLI/PrivilegesCLI-Info.plist";
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				OTHER_LDFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.cli;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.cli;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -1147,7 +1147,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1163,7 +1163,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				INFOPLIST_FILE = PrivilegesTile/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					AppKit,
@@ -1172,7 +1172,7 @@
 					"-framework",
 					login,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.docktileplugin;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.docktileplugin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = docktileplugin;
@@ -1202,7 +1202,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7R5ZEU67FQ;
+				DEVELOPMENT_TEAM = 2U3GKQ7U8Z;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1218,7 +1218,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				INFOPLIST_FILE = PrivilegesTile/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.5;
 				OTHER_LDFLAGS = (
 					"-framework",
 					AppKit,
@@ -1227,7 +1227,7 @@
 					"-framework",
 					login,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = corp.sap.privileges.docktileplugin;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ripeda.privileges.docktileplugin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = docktileplugin;

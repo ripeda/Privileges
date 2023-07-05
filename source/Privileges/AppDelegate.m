@@ -1,13 +1,13 @@
 /*
  AppDelegate.m
  Copyright 2016-2022 SAP SE
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -67,18 +67,18 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification
-{    
+{
     // check if we were launched because the user clicked one of our notifications.
     // if so, we just quit.
     NSUserNotification *userNotification = [[aNotification userInfo] objectForKey:NSApplicationLaunchUserNotificationKey];
     if (userNotification) {
         [NSApp terminate:self];
-        
+
     } else {
-        
+
         // get the name of the current user
         _currentUser = NSUserName();
-        
+
         // initialize our userDefaults and remove an existing "EnforcePrivileges" key
         // form our plist. This key should just be used in a configuration profile.
         _userDefaults = [NSUserDefaults standardUserDefaults];
@@ -88,30 +88,30 @@ extern void CoreDockSendNotification(CFStringRef, void*);
         NSString *creditsPath = [[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtfd"];
         [_aboutText readRTFDFromFile:creditsPath];
         [_aboutText setTextColor:[NSColor textColor]];
-        
+
         // set app name and version for the "about" window
         NSString *appName = [[NSRunningApplication currentApplication] localizedName];
         NSString *appVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
         NSString *appBuild = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
         [_appNameAndVersion setStringValue:[NSString stringWithFormat:@"%@ %@ (%@)", appName, appVersion, appBuild]];
-                
+
         // set initial window positions
         NSRect screenRect = [[NSScreen mainScreen] visibleFrame];
         [_aboutWindow setFrameTopLeftPoint:(NSMakePoint(20 + screenRect.origin.x, screenRect.size.height - 20 + screenRect.origin.y))];
         [_prefsWindow setFrameTopLeftPoint:(NSMakePoint(20 + screenRect.origin.x, screenRect.size.height - 20 + screenRect.origin.y))];
-        
+
         // create the initial timeout menu
         [self createTimeoutMenu];
-        
+
         // create the menu with pre-defined reasons (if configured)
         if ([_userDefaults boolForKey:kMTDefaultsRequireReason]) {
             NSArray *predefinedReasons = [_userDefaults arrayForKey:kMTDefaultsReasonPresets];
-        
+
             if (predefinedReasons && [predefinedReasons count] > 0) {
-                
+
                 NSMutableArray *allReasons = [[NSMutableArray alloc] init];
                 NSString *languageCode = [[NSLocale currentLocale] languageCode];
-                
+
                 for (NSDictionary *aReason in predefinedReasons) {
 
                     if ([aReason isKindOfClass:[NSDictionary class]]) {
@@ -121,21 +121,21 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                         if (localizedReasonString) { [allReasons addObject:localizedReasonString]; }
                     }
                 }
-                
+
                 if ([allReasons count] > 0) { [allReasons insertObject:NSLocalizedString(@"otherMenuEntry", nil) atIndex:0]; }
-           
+
                 for (NSString *aReason in allReasons) {
                      NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:aReason
                                                                        action:nil
                                                                 keyEquivalent:@""];
                      [[_predefinedReasonsMenu menu] addItem:menuItem];
                 }
-                
+
                 // make the menu visible
                 [_reasonPopupHeight setConstant:22];
             }
         }
-        
+
         // define the keys in our prefs we need to observe
         _keysToObserve = [[NSArray alloc] initWithObjects:
                           kMTDefaultsToggleTimeout,
@@ -145,7 +145,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                           kMTDefaultsLimitToGroup,
                           nil
                           ];
-        
+
         // Start observing our preferences to make sure we'll get notified as soon as someting changes (e.g. a configuration
         // profile has been installed). Unfortunately we cannot use the NSUserDefaultsDidChangeNotification here, because
         // it wouldn't be called if changes to our prefs would be made from outside this application.
@@ -155,10 +155,10 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                                options:NSKeyValueObservingOptionNew
                                context:nil];
         }
-        
+
         // make sure that we are frontmost
         [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
-        
+
         // observe if we are sent to background because in this case we'll not have to unhide other apps
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserverForName:NSWorkspaceDidDeactivateApplicationNotification
                                                                         object:nil
@@ -166,12 +166,12 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                                                                     usingBlock:^(NSNotification *_Nonnull note) {
             [self->_userDefaults setBool:YES forKey:@"dontUnhideApps"];
         }];
-           
+
         // hide all other windows (only if VoiceOver is disabled)
         if (![MTVoiceOver isEnabled]) {
             CoreDockSendNotification(CFSTR("com.apple.showdesktop.awake"), NULL);
         }
-        
+
         // change privileges immediately if needed and if
         // privileges are enforced or just update our dialog
         if ([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges] && ([[self->_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"admin"] || [[self->_userDefaults stringForKey:kMTDefaultsEnforcePrivileges] isEqualToString:@"user"])) {
@@ -180,7 +180,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
         } else {
             _autoApplyPrivileges = NO;
         }
-        
+
         [self createDialog];
     }
 }
@@ -188,36 +188,36 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 - (void)changeAdminGroup:(NSString*)userName remove:(BOOL)remove
 {
     [self connectAndExecuteCommandBlock:^(NSError *connectError) {
-        
+
           if (connectError) {
-              os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! %{public}@", connectError);
+              os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! %{public}@", connectError);
               [self displayErrorNotificationAndExit];
-              
+
           } else {
-              
+
               [[self.helperToolConnection remoteObjectProxyWithErrorHandler:^(NSError *proxyError) {
-                  os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! %{public}@", proxyError);
+                  os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! %{public}@", proxyError);
                   [self displayErrorNotificationAndExit];
-                  
+
               }] changeAdminRightsForUser:userName
                                    remove:remove
                                    reason:self->_adminReason
                             authorization:self->_authorization
                                 withReply:^(NSError *error) {
-                  
+
                   if (error) {
-                      os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Unable to change privileges: %{public}@", error);
+                      os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Unable to change privileges: %{public}@", error);
                       [self displayErrorNotificationAndExit];
-                
+
                   } else {
-                  
+
                       // send a notification to update the Dock tile
-                      [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"corp.sap.PrivilegesChanged"
+                      [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.ripeda.PrivilegesChanged"
                                                                                      object:userName
                                                                                    userInfo:nil
                                                                                     options:NSNotificationDeliverImmediately
                        ];
-                      
+
                       [self displaySuccessNotificationAndExit];
                   }
               }];
@@ -233,17 +233,17 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     // create authorization reference
     AuthorizationExternalForm extForm;
     OSStatus err = AuthorizationCreate(NULL, NULL, 0, &self->_authRef);
-    
+
     if (err == errAuthorizationSuccess) {
         err = AuthorizationMakeExternalForm(self->_authRef, &extForm);
     }
-    
+
     if (err == errAuthorizationSuccess) {
         self.authorization = [[NSData alloc] initWithBytes:&extForm length:sizeof(extForm)];
     }
 
     if (err == errAuthorizationSuccess && self->_authRef) {
-        
+
         [self connectToXPCService];
         [[self.xpcServiceConnection remoteObjectProxy] setupAuthorizationRights];
 
@@ -251,19 +251,19 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 
             if (connectError) {
                 [self performSelectorOnMainThread:@selector(helperCheckFailed:) withObject:connectError waitUntilDone:NO];
-                
+
             } else {
-                
+
                 [[self.helperToolConnection remoteObjectProxyWithErrorHandler:^(NSError *proxyError) {
                     [self performSelectorOnMainThread:@selector(helperCheckFailed:) withObject:proxyError waitUntilDone:NO];
-                    
+
                 }] helperVersionWithReply:^(NSString *helperVersion) {
 
                     if ([helperVersion isEqualToString:requiredVersion]) {
-                        
+
                         // everything seems to be good, so set the privileges
                         [self performSelectorOnMainThread:@selector(setPrivileges) withObject:nil waitUntilDone:NO];
-                        
+
                     } else {
                         NSString *errorMsg = [NSString stringWithFormat:@"Helper version mismatch (is %@, should be %@)", helperVersion, requiredVersion];
                         [self performSelectorOnMainThread:@selector(helperCheckFailed:) withObject:errorMsg waitUntilDone:NO];
@@ -271,9 +271,9 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                 }];
             }
         }];
-        
+
     } else {
-    
+
         // display an error dialog and exit
         [self displayDialog:NSLocalizedString(@"notificationText_Error", nil)
                 messageText:nil
@@ -285,32 +285,32 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 
 - (void)helperCheckFailed:(NSString*)errorMessage
 {
-    os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! %{public}@", errorMessage);
-    
+    os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! %{public}@", errorMessage);
+
     [self connectToXPCService];
     [[self.xpcServiceConnection remoteObjectProxyWithErrorHandler:^(NSError *proxyError) {
-        
-        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! %{public}@", proxyError);
-        
+
+        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! %{public}@", proxyError);
+
         [self displayDialog:NSLocalizedString(@"notificationText_Error", nil)
                 messageText:nil
           withDefaultButton:NSLocalizedString(@"okButton", nil)
          andAlternateButton:nil
          ];
-        
+
     }] installHelperToolWithReply:^(NSError *installError) {
-        
+
         if (!installError) {
-            
-            os_log(OS_LOG_DEFAULT, "SAPCorp: The helper tool has been successfully installed");
-            
+
+            os_log(OS_LOG_DEFAULT, "RIPEDA: The helper tool has been successfully installed");
+
             // check for the helper again
             [self performSelectorOnMainThread:@selector(checkForHelper) withObject:nil waitUntilDone:NO];
-            
+
         } else {
-            
-            os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Installation of the helper tool failed: %{public}@", installError);
-            
+
+            os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Installation of the helper tool failed: %{public}@", installError);
+
             [self displayDialog:NSLocalizedString(@"notificationText_Error", nil)
                     messageText:nil
               withDefaultButton:NSLocalizedString(@"okButton", nil)
@@ -324,22 +324,22 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 {
     // remove all menu entries
     [[_toggleTimeoutMenu menu] removeAllItems];
-    
+
     // define the default timeout
     NSInteger timeoutValue = kMTDockTimeoutDefault;
-    
+
     // get the configured timeout
     if ([_userDefaults objectForKey:kMTDefaultsToggleTimeout]) {
 
         // get the currently configured timeout
         timeoutValue = [_userDefaults integerForKey:kMTDefaultsToggleTimeout];
         if (timeoutValue < 0) { timeoutValue = 0; }
-        
+
         // disable the menu if the setting is managed
         [_toggleTimeoutMenu setEnabled:![_userDefaults objectIsForcedForKey:kMTDefaultsToggleTimeout]];
-        
+
     } else {
-        
+
         // write the default timeout to file
         [_userDefaults setValue:[NSNumber numberWithInteger:timeoutValue] forKey:kMTDefaultsToggleTimeout];
     }
@@ -347,35 +347,35 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     // check if the configured timeout has already an entry in our menu. if not,
     // add the new value
     _toggleTimeouts = [NSMutableArray arrayWithArray:kMTFixedTimeoutValues];
-    
+
     if (![_toggleTimeouts containsObject:[NSNumber numberWithInteger:timeoutValue]]) {
         [_toggleTimeouts addObject:[NSNumber numberWithInteger:timeoutValue]];
     }
-    
+
     // get the maximum timeout value (if configured)
     NSInteger maxTimeoutValue = 0;
     if ([_userDefaults objectForKey:kMTDefaultsToggleMaxTimeout] && ![_userDefaults objectIsForcedForKey:kMTDefaultsToggleTimeout]) {
         maxTimeoutValue = [_userDefaults integerForKey:kMTDefaultsToggleMaxTimeout];
         if (maxTimeoutValue > 0 && timeoutValue > maxTimeoutValue) { timeoutValue = maxTimeoutValue; }
-        
+
         if (![_toggleTimeouts containsObject:[NSNumber numberWithInteger:maxTimeoutValue]]) {
             [_toggleTimeouts addObject:[NSNumber numberWithInteger:maxTimeoutValue]]; }
     }
-    
+
     // sort the array
     NSSortDescriptor *sortAscending = [NSSortDescriptor sortDescriptorWithKey:@"self" ascending:YES];
     [_toggleTimeouts sortUsingDescriptors:[NSArray arrayWithObject:sortAscending]];
-    
+
     for (NSNumber *predefinedTimeoutValue in _toggleTimeouts) {
-        
+
         NSInteger predefinedTimeoutValueInt = [predefinedTimeoutValue integerValue];
-        
+
         NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:[self localizedTimeoutStringWithMinutes:predefinedTimeoutValueInt]
                                                           action:nil
                                                    keyEquivalent:@""];
         [menuItem setTag:predefinedTimeoutValueInt];
         [[_toggleTimeoutMenu menu] addItem:menuItem];
-        
+
         if (maxTimeoutValue > 0 && ((predefinedTimeoutValueInt > maxTimeoutValue) || predefinedTimeoutValueInt == 0)) {
             [menuItem setEnabled:NO];
         } else {
@@ -392,7 +392,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     NSString *enforcedPrivileges = ([_userDefaults objectIsForcedForKey:kMTDefaultsEnforcePrivileges]) ? [_userDefaults objectForKey:kMTDefaultsEnforcePrivileges] : nil;
     NSString *limitToUser = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToUser]) ? [_userDefaults objectForKey:kMTDefaultsLimitToUser] : nil;
     NSString *limitToGroup = ([_userDefaults objectIsForcedForKey:kMTDefaultsLimitToGroup]) ? [_userDefaults objectForKey:kMTDefaultsLimitToGroup] : nil;
-    
+
     // we just display a dialog and quit if one of the following applies:
     //
     // - EnforcePrivileges has been set to "none"
@@ -401,57 +401,57 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     //
     // Please be aware that LimitToUser has a higher priority than LimitToGroup. So if
     // both attributes have been specified, the value of LimitToGroup is ignored.
-    
+
     if ([enforcedPrivileges isEqualToString:@"none"] ||
         (limitToUser && ([limitToUser caseInsensitiveCompare:_currentUser] != NSOrderedSame)) ||
         (!limitToUser && limitToGroup && ![MTIdentity getGroupMembershipForUser:_currentUser groupName:limitToGroup error:nil])) {
-        
+
         // display a dialog and exit
         [self displayDialog:NSLocalizedString(@"restrictedDialog1", nil)
                 messageText:NSLocalizedString(@"restrictedDialog2None", nil)
           withDefaultButton:NSLocalizedString(@"okButton", nil)
          andAlternateButton:nil
          ];
-        
+
     } else {
 
         // don't run this as root
         if (getuid() != 0) {
-            
+
             NSError *userError = nil;
             BOOL isAdmin = [MTIdentity getGroupMembershipForUser:_currentUser groupID:kMTAdminGroupID error:&userError];
-            
+
             if (userError) {
-                
+
                 // display an error dialog and exit if we were unable to check the group membership
                 [self displayDialog:NSLocalizedString(@"notificationText_Error", nil)
                         messageText:nil
                   withDefaultButton:NSLocalizedString(@"okButton", nil)
                  andAlternateButton:nil
                  ];
-                
+
             } else {
-                
+
                 if ([enforcedPrivileges isEqualToString:@"admin"] || [enforcedPrivileges isEqualToString:@"user"]) {
-                                            
+
                     [self displayDialog:NSLocalizedString(@"restrictedDialog1", nil)
                             messageText:([enforcedPrivileges isEqualToString:@"admin"]) ? NSLocalizedString(@"restrictedDialog2Admin", nil) : NSLocalizedString(@"restrictedDialog2User", nil)
                       withDefaultButton:NSLocalizedString(@"okButton", nil)
                      andAlternateButton:nil
                      ];
-                    
+
                 } else {
-                    
+
                     if (isAdmin) {
-                        
+
                         [self displayDialog:NSLocalizedString(@"unsetDialog1", nil)
                                 messageText:NSLocalizedString(@"unsetDialog2", nil)
                           withDefaultButton:NSLocalizedString(@"cancelButton", nil)
                          andAlternateButton:NSLocalizedString(@"removeButton", nil)
                          ];
-                        
+
                     } else {
-                        
+
                         [self displayDialog:NSLocalizedString(@"setDialog1", nil)
                                 messageText:NSLocalizedString(@"setDialog2", nil)
                           withDefaultButton:NSLocalizedString(@"cancelButton", nil)
@@ -462,7 +462,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
             }
 
         } else {
-            
+
             // if the user is root, display an error dialog and exit
             [self displayDialog:NSLocalizedString(@"rootError", nil)
                     messageText:nil
@@ -477,26 +477,26 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 {
     BOOL isAdmin = [MTIdentity getGroupMembershipForUser:_currentUser groupID:kMTAdminGroupID error:nil];
     BOOL changeNeeded = YES;
-    
+
     if (_autoApplyPrivileges) {
         NSString *enforcedPrivileges = [_userDefaults objectForKey:kMTDefaultsEnforcePrivileges];
-        
+
         if (([enforcedPrivileges isEqualToString:@"admin"] && isAdmin) || ([enforcedPrivileges isEqualToString:@"user"] && !isAdmin)) {
             changeNeeded = NO;
         }
     }
-    
+
     // change group membership
     if (changeNeeded) {
-        
+
         // ask for the account password to grant admin rights
         if (!isAdmin && [_userDefaults boolForKey:kMTDefaultsAuthRequired] && !_autoApplyPrivileges) {
-            
+
             [MTIdentity authenticateUserWithReason:NSLocalizedString(@"authenticationText", nil)
                                  completionHandler:^(BOOL success, NSError *error) {
-                
+
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    
+
                     if (success) {
                         [self changeAdminGroup:self->_currentUser remove:isAdmin];
                     } else {
@@ -504,11 +504,11 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                     }
                 });
             }];
-            
+
         } else {
             [self changeAdminGroup:_currentUser remove:isAdmin];
         }
-        
+
     } else {
 
         // send notification that nothing has changed and exit
@@ -533,28 +533,28 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     // set the minimum text length
     if ([_userDefaults objectIsForcedForKey:kMTDefaultsReasonMinLength]) { _minReasonLength = [_userDefaults integerForKey:kMTDefaultsReasonMinLength]; }
     if (_minReasonLength < 1 || _minReasonLength >= kMTReasonMaxLengthDefault) { _minReasonLength = kMTReasonMinLengthDefault; }
-    
+
     // set the maximum text length
     if ([_userDefaults objectIsForcedForKey:kMTDefaultsReasonMaxLength]) { _maxReasonLength = [_userDefaults integerForKey:kMTDefaultsReasonMaxLength]; }
     if (_maxReasonLength <= _minReasonLength || _maxReasonLength > kMTReasonMaxLengthDefault) { _maxReasonLength = kMTReasonMaxLengthDefault; }
-    
+
     _adminReason = nil;
-    
+
     NSString *minCharacters = nil;
-    
+
     if (_minReasonLength == 1) {
         minCharacters = [NSString localizedStringWithFormat:NSLocalizedString(@"oneChar", nil), (long)_minReasonLength];
     } else {
-        
+
         NSString *evenMoreThreshold = NSLocalizedString(@"evenMoreCharsThreshold", nil);
-        
+
         if (evenMoreThreshold && _minReasonLength >= [evenMoreThreshold integerValue]) {
             minCharacters = [NSString localizedStringWithFormat:NSLocalizedString(@"evenMoreChars", nil), (long)_minReasonLength];
         } else {
             minCharacters = [NSString localizedStringWithFormat:NSLocalizedString(@"moreChars", nil), (long)_minReasonLength];
         }
     }
-    
+
     if ([_reasonPopupHeight constant] > 0) {
         [_reasonDescription setStringValue:[NSString localizedStringWithFormat:NSLocalizedString(@"reasonDescriptionPredefined", nil), NSLocalizedString(@"otherMenuEntry", nil), minCharacters, (long)_minReasonLength]];
         [_predefinedReasonsMenu selectItemAtIndex:0];
@@ -564,13 +564,13 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     [_reasonText setStringValue:@""];
     [_mainWindow beginSheet:_reasonWindow
           completionHandler:^(NSModalResponse returnCode) {
-        
+
         NSString *reasonString = nil;
-        
+
         if (returnCode == NSModalResponseOK) {
             reasonString = ([self->_reasonTextHeight constant] == 0) ? [[self->_predefinedReasonsMenu selectedItem] title] : [self->_reasonText stringValue];
         }
-        
+
         if (completionHandler) {
 
             if ([reasonString length] > 0) {
@@ -584,7 +584,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 
 - (IBAction)hideReasonSheet:(id)sender
 {
-    if ([[sender identifier] isEqualToString:@"corp.sap.button.continue"]) {
+    if ([[sender identifier] isEqualToString:@"com.ripeda.button.continue"]) {
         [_mainWindow endSheet:_reasonWindow returnCode:NSModalResponseOK];
     } else {
         [_mainWindow endSheet:_reasonWindow returnCode:NSModalResponseCancel];
@@ -598,12 +598,12 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 
     if (reasonTextString && [reasonTextString length] >= _minReasonLength) {
         [_reasonButton setEnabled:YES];
-        
+
         // we limit the number of characters here
         if ([reasonTextString length] > _maxReasonLength) {
                [_reasonText setStringValue:[reasonTextString substringWithRange:NSMakeRange(0, _maxReasonLength)]];
         }
-        
+
     } else {
         [_reasonButton setEnabled:NO];
     }
@@ -612,13 +612,13 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 - (void)displayDialog:(NSString* _Nonnull)messageTitle messageText:(NSString*)messageText withDefaultButton:(NSString* _Nonnull)defaultButtonText andAlternateButton:(NSString*)alternateButtonText
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        
+
         // hide our dialog if currently visible
         if ([self->_mainWindow isVisible]) { [self->_mainWindow orderOut:self]; }
-        
+
         NSString *accessibilityDialogLabel = messageTitle;
         [self->_notificationHead setStringValue:messageTitle];
-        
+
         if (messageText) {
             accessibilityDialogLabel = [accessibilityDialogLabel stringByAppendingFormat:@", %@", messageText];
             [self->_notificationBody setStringValue:messageText];
@@ -626,7 +626,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
         } else {
             [self->_notificationBody setHidden:YES];
         }
-        
+
         [self->_defaultButton setTitle:defaultButtonText];
 
         if (alternateButtonText) {
@@ -635,15 +635,15 @@ extern void CoreDockSendNotification(CFStringRef, void*);
         } else {
             [self->_alternateButton setHidden:YES];
         }
-        
+
         // VoiceOver
         [self->_mainWindow setAccessibilityLabel:accessibilityDialogLabel];
         [self->_mainWindow setAccessibilityEnabled:YES];
         [self->_defaultButton setAccessibilityFocused:YES];
-        
+
         // make sure that we are frontmost
         [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
-        
+
         // display our dialog
         [self->_mainWindow setLevel:NSScreenSaverWindowLevel];
         [self->_mainWindow setAnimationBehavior:NSWindowAnimationBehaviorAlertPanel];
@@ -664,25 +664,25 @@ extern void CoreDockSendNotification(CFStringRef, void*);
     if (_autoApplyPrivileges) {
         [_mainWindow orderOut:self];
         [NSApp terminate:self];
-        
+
     } else {
-            
-        if ([[sender identifier] isEqualToString:@"corp.sap.button.default"] && !_autoApplyPrivileges) {
-        
+
+        if ([[sender identifier] isEqualToString:@"com.ripeda.button.default"] && !_autoApplyPrivileges) {
+
             // send notification that nothing has changed and exit
             [_mainWindow orderOut:self];
             [self displayNoChangeNotificationAndExit];
-            
+
         } else {
 
             BOOL isAdmin = [MTIdentity getGroupMembershipForUser:_currentUser groupID:kMTAdminGroupID error:nil];
 
             if (!isAdmin && ([_userDefaults objectIsForcedForKey:kMTDefaultsRequireReason] && [_userDefaults boolForKey:kMTDefaultsRequireReason])) {
-                
+
                 [self getReasonForNeedingAdminRightsWithCompletionHandler:^(NSString *reason) {
-                        
+
                         dispatch_async(dispatch_get_main_queue(), ^{
-                            
+
                             if (reason) {
                                 self->_adminReason = reason;
                                 [self->_mainWindow orderOut:self];
@@ -691,9 +691,9 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                             }
                         });
                     }];
-                
+
             } else {
-                
+
                 // check for the helper (and the correct version)
                 [_mainWindow orderOut:self];
                 [self performSelectorOnMainThread:@selector(checkForHelper) withObject:nil waitUntilDone:NO];
@@ -705,23 +705,23 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 - (NSString*)localizedTimeoutStringWithMinutes:(NSInteger)timeoutMinutes
 {
     NSString *timeoutString = NSLocalizedString(@"timeoutNever", nil);
-    
+
     if (timeoutMinutes > 0) {
-        
+
         if (timeoutMinutes == 1) {
             timeoutString = [NSString stringWithFormat:@"%ld %@", (long)timeoutMinutes, NSLocalizedString(@"timeoutMin", nil)];
-            
+
         } else if (timeoutMinutes < 60) {
             timeoutString = [NSString stringWithFormat:@"%ld %@", (long)timeoutMinutes, NSLocalizedString(@"timeoutMins", nil)];
-            
+
         } else if (timeoutMinutes/60 == 1) {
             timeoutString = [NSString stringWithFormat:@"%ld %@", (long)timeoutMinutes/60, NSLocalizedString(@"timeoutHour", nil)];
-            
+
         } else {
             timeoutString = [NSString stringWithFormat:@"%ld %@", (long)timeoutMinutes/60, NSLocalizedString(@"timeoutHours", nil)];
         }
     }
-    
+
     return timeoutString;
 }
 
@@ -732,7 +732,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                                    andMessage:NSLocalizedString(@"notificationText_Nothing", nil)
                               replaceExisting:YES
                                      delegate:self];
-    
+
     if (!_autoApplyPrivileges) {
         dispatch_async(dispatch_get_main_queue(), ^{ [NSApp terminate:self]; });
     }
@@ -745,7 +745,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                                    andMessage:NSLocalizedString(@"notificationText_Error", nil)
                               replaceExisting:YES
                                      delegate:self];
-    
+
     if (!_autoApplyPrivileges) {
         dispatch_async(dispatch_get_main_queue(), ^{ [NSApp terminate:self]; });
     }
@@ -758,7 +758,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
                                    andMessage:NSLocalizedString(@"notificationText_Success", nil)
                               replaceExisting:YES
                                      delegate:self];
-    
+
     if (!_autoApplyPrivileges) {
         dispatch_async(dispatch_get_main_queue(), ^{ [NSApp terminate:self]; });
     }
@@ -807,11 +807,11 @@ extern void CoreDockSendNotification(CFStringRef, void*);
             // update the timeout menu
             [self createTimeoutMenu];
          }];
-        
+
     } else if (object == _userDefaults && ([keyPath isEqualToString:kMTDefaultsEnforcePrivileges] ||
                                            [keyPath isEqualToString:kMTDefaultsLimitToUser] ||
                                            [keyPath isEqualToString:kMTDefaultsLimitToGroup])) {
-        
+
         // workaround for bug that is causing observeValueForKeyPath to be called multiple times.
         // so every notification resets the timer and if we got no new notifications for 2 seconds,
         // we evaluate the changes.
@@ -836,25 +836,25 @@ extern void CoreDockSendNotification(CFStringRef, void*);
 -(void)applicationWillTerminate:(NSNotification *)aNotification
 {
 #pragma unused(aNotification)
-    
+
     // quit the helper tool
     [self connectAndExecuteCommandBlock:^(NSError * connectError) {
-        
+
            if (connectError) {
-               os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! %{public}@", connectError);
+               os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! %{public}@", connectError);
            } else {
-               
+
                [[self.helperToolConnection remoteObjectProxyWithErrorHandler:^(NSError *proxyError) {
-                   os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! %{public}@", proxyError);
+                   os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! %{public}@", proxyError);
                }] quitHelperTool];
            }
        }
      ];
-    
+
     // remove our observers
     for (NSString *aKey in _keysToObserve) { [_userDefaults removeObserver:self forKeyPath:aKey]; }
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
-    
+
     // unhide the other applications if needed
     if (![MTVoiceOver isEnabled]) {
         if ([_userDefaults boolForKey:@"dontUnhideApps"]) {
@@ -885,7 +885,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
             self.xpcServiceConnection.invalidationHandler = nil;
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                 self.xpcServiceConnection = nil;
-                os_log(OS_LOG_DEFAULT, "SAPCorp: XPC connection invalidated");
+                os_log(OS_LOG_DEFAULT, "RIPEDA: XPC connection invalidated");
             }];
         };
         #pragma clang diagnostic pop
@@ -910,7 +910,7 @@ extern void CoreDockSendNotification(CFStringRef, void*);
             self.helperToolConnection.invalidationHandler = nil;
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                 self.helperToolConnection = nil;
-                os_log(OS_LOG_DEFAULT, "SAPCorp: Helper tool connection invalidated");
+                os_log(OS_LOG_DEFAULT, "RIPEDA: Helper tool connection invalidated");
             }];
         };
         #pragma clang diagnostic pop

@@ -86,13 +86,13 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
     // see how we have been signed and make sure only processes with the same signing authority can connect.
     // additionally the calling application must have the same version number as this helper and must be one
-    // of the components using a bundle identifier starting with "corp.sap.privileges"
+    // of the components using a bundle identifier starting with "com.ripeda.privileges"
     NSError *error = nil;
     NSString *signingAuth = [MTAuthCommon getSigningAuthorityWithError:&error];
     NSString *requiredVersion = [self helperVersion];
 
     if (signingAuth) {
-        NSString *reqString = [NSString stringWithFormat:@"anchor trusted and certificate leaf [subject.CN] = \"%@\" and info [CFBundleShortVersionString] >= \"%@\" and info [CFBundleIdentifier] = corp.sap.privileges*", signingAuth, requiredVersion];
+        NSString *reqString = [NSString stringWithFormat:@"anchor trusted and certificate leaf [subject.CN] = \"%@\" and info [CFBundleShortVersionString] >= \"%@\" and info [CFBundleIdentifier] = com.ripeda.privileges*", signingAuth, requiredVersion];
         SecTaskRef taskRef = SecTaskCreateWithAuditToken(NULL, ((ExtendedNSXPCConnection*)newConnection).auditToken);
 
         if (taskRef) {
@@ -105,14 +105,14 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                 [newConnection resume];
 
             } else {
-                os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Code signature verification failed");
+                os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Code signature verification failed");
             }
 
             CFRelease(taskRef);
         }
 
     } else {
-        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Failed to get code signature: %{public}@", error);
+        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Failed to get code signature: %{public}@", error);
     }
 
     return acceptConnection;
@@ -203,11 +203,11 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     __block BOOL serverUp = NO;
 
     // Check if server is up
-    NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"corp.sap.privileges"];
+    NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ripeda.privileges"];
     NSDictionary *remoteLogging = [userDefaults dictionaryForKey:kMTDefaultsRemoteLogging];
 
     if (!remoteLogging) {
-        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging not configured, treating as online");
+        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Remote logging not configured, treating as online");
         return YES;
     }
 
@@ -240,10 +240,10 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
             NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 
                 if (error) {
-                    os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Server is down: %{public}@", error);
+                    os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Server is down: %{public}@", error);
                     serverUp = NO;
                 } else {
-                    os_log(OS_LOG_DEFAULT, "SAPCorp: Server is up");
+                    os_log(OS_LOG_DEFAULT, "RIPEDA: Server is up");
                     serverUp = YES;
                 }
             }];
@@ -256,14 +256,14 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
         } else {
             // Unknown server type
-            os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Server status only supported on HTTP/HTTPS, treating as online");
+            os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Server status only supported on HTTP/HTTPS, treating as online");
             return YES;
         }
 
 
     } else {
         // No server configured
-        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! No server configured, treating as online");
+        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! No server configured, treating as online");
         return YES;
     }
 
@@ -281,7 +281,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
 
     if (!remove && !error) {
-        os_log(OS_LOG_DEFAULT, "SAPCorp: Elevating user: %{public}@, verifying server connection", userName);
+        os_log(OS_LOG_DEFAULT, "RIPEDA: Elevating user: %{public}@, verifying server connection", userName);
         // Call server to see if it's online
         // Only allow users to be elevated if the server is online
         if ([self checkServer] == NO) {
@@ -337,13 +337,13 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                         [MTIdentity getGroupMembershipForUser:userName groupID:kMTAdminGroupID error:nil];
 
                         // log the privilege change
-                        NSString *logMessage = [NSString stringWithFormat:@"SAPCorp: User %@ has now %@ rights", userName, (remove) ? @"standard user" : @"admin"];
+                        NSString *logMessage = [NSString stringWithFormat:@"RIPEDA: User %@ has now %@ rights", userName, (remove) ? @"standard user" : @"admin"];
                         if ([reason length] > 0) { logMessage = [logMessage stringByAppendingFormat:@" for the following reason: %@", reason]; }
                         os_log(OS_LOG_DEFAULT, "%{public}@", logMessage);
 
                         // if remote logging has been configured, we send the log message to the remote
                         // logging server as well
-                        NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"corp.sap.privileges"];
+                        NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ripeda.privileges"];
 
                         if ([userDefaults objectIsForcedForKey:kMTDefaultsRemoteLogging]) {
 
@@ -352,7 +352,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                             NSString *serverType = [remoteLogging objectForKey:kMTDefaultsRLServerType];
                             NSString *serverAddress = [remoteLogging objectForKey:kMTDefaultsRLServerAddress];
 
-                            os_log(OS_LOG_DEFAULT, "SAPCorp: Remote logging is enabled. Server type: %{public}@, server address: %{public}@", serverType, serverAddress);
+                            os_log(OS_LOG_DEFAULT, "RIPEDA: Remote logging is enabled. Server type: %{public}@, server address: %{public}@", serverType, serverAddress);
 
                             if ([[serverType lowercaseString] isEqualToString:@"syslog"] && serverAddress) {
                                 NSInteger serverPort = [[remoteLogging objectForKey:kMTDefaultsRLServerPort] integerValue];
@@ -379,7 +379,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                                 [_syslogServer sendMessage:message completionHandler:^(NSError *networkError) {
 
                                     if (networkError) {
-                                        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging failed: %{public}@", networkError);
+                                        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Remote logging failed: %{public}@", networkError);
                                     }
 
                                     dispatch_async(dispatch_get_main_queue(), ^{ self->_networkOperation = NO; });
@@ -405,14 +405,14 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                                 [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
                                 [request setHTTPBody:jsonData];
 
-                                os_log(OS_LOG_DEFAULT, "SAPCorp: Remote logging request: %{public}@", request);
+                                os_log(OS_LOG_DEFAULT, "RIPEDA: Remote logging request: %{public}@", request);
 
                                 // send the request
                                 _networkOperation = YES;
                                 NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *networkError) {
 
                                     if (networkError) {
-                                        os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging failed: %{public}@", networkError);
+                                        os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Remote logging failed: %{public}@", networkError);
                                     }
 
                                     dispatch_async(dispatch_get_main_queue(), ^{ self->_networkOperation = NO; });
@@ -421,7 +421,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
                                 [task resume];
 
                             } else {
-                                os_log(OS_LOG_DEFAULT, "SAPCorp: ERROR! Remote logging is misconfigured");
+                                os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Remote logging is misconfigured");
                             }
                         }
 
@@ -447,7 +447,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
     if ([errorMsg length] > 0) {
         NSDictionary *errorDetail = [NSDictionary dictionaryWithObjectsAndKeys:errorMsg, NSLocalizedDescriptionKey, nil];
-        error = [NSError errorWithDomain:@"corp.sap.privileges" code:100 userInfo:errorDetail];
+        error = [NSError errorWithDomain:@"com.ripeda.privileges" code:100 userInfo:errorDetail];
     }
 
     reply(error);
@@ -463,7 +463,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
     Returns a json dictionary with following properties:
     {
-        "message": "SAPCorp: User <user name> has now <standard/elevated> rights",
+        "message": "RIPEDA: User <user name> has now <standard/elevated> rights",
         "reason": "<reason for the change>",
         "isElevated": <true/false>,
         "username": "<user name>",
@@ -480,7 +480,7 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
 
     // "message"
-    NSString *logMessage = [NSString stringWithFormat:@"SAPCorp: User %@ has now %@ rights", userName, (remove) ? @"standard" : @"elevated"];
+    NSString *logMessage = [NSString stringWithFormat:@"RIPEDA: User %@ has now %@ rights", userName, (remove) ? @"standard" : @"elevated"];
     [jsonDict setObject:logMessage forKey:@"message"];
     // "reason"
     if ([reason length] > 0) { [jsonDict setObject:reason forKey:@"reason"]; }

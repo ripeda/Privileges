@@ -47,7 +47,7 @@ extern void SACLockScreenImmediate (void);
     if (dockTile) {
 
         // initialize our userDefaults to get the managed preferences
-        _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"corp.sap.privileges"];
+        _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ripeda.privileges"];
 
         // get the name of the current user
         _currentUser = NSUserName();
@@ -60,7 +60,7 @@ extern void SACLockScreenImmediate (void);
         _cliPath = [_mainBundle pathForResource:@"PrivilegesCLI" ofType:nil];
 
         // register an observer to watch for privilege changes
-        _privilegesObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"corp.sap.PrivilegesChanged"
+        _privilegesObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"com.ripeda.PrivilegesChanged"
                                                                                            object:_currentUser
                                                                                             queue:nil
                                                                                        usingBlock:^(NSNotification *notification) {
@@ -78,7 +78,7 @@ extern void SACLockScreenImmediate (void);
                                                                                        }];
 
         // register an observer for the toggle timeout
-        _timeoutObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"corp.sap.PrivilegesTimeout"
+        _timeoutObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"com.ripeda.PrivilegesTimeout"
                                                                                         object:_currentUser
                                                                                          queue:nil
                                                                                     usingBlock:^(NSNotification *notification) {
@@ -212,7 +212,7 @@ extern void SACLockScreenImmediate (void);
     // or in the Privileges preferences
     } else {
 
-        NSString *privilegesPrefsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"/Library/Containers/corp.sap.privileges/Data/Library/Preferences/corp.sap.privileges"];
+        NSString *privilegesPrefsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"/Library/Containers/com.ripeda.privileges/Data/Library/Preferences/com.ripeda.privileges"];
         NSDictionary *privilegesDefaults = [[NSUserDefaults standardUserDefaults] persistentDomainForName:privilegesPrefsPath];
 
         if ([privilegesDefaults objectForKey:kMTDefaultsToggleTimeout]) {
@@ -256,7 +256,7 @@ extern void SACLockScreenImmediate (void);
 - (void)sendBadgeUpdateNotification
 {
     // send a notification to update the badge
-    [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"corp.sap.PrivilegesTimeout"
+    [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.ripeda.PrivilegesTimeout"
                                                                    object:_currentUser
                                                                  userInfo:nil
                                                                   options:NSNotificationDeliverImmediately
@@ -439,7 +439,7 @@ extern void SACLockScreenImmediate (void);
             [self invalidateToggleTimer];
 
             // update the Dock tile
-            [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"corp.sap.PrivilegesChanged"
+            [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.ripeda.PrivilegesChanged"
                                                                            object:_currentUser
                                                                          userInfo:nil
                                                                           options:NSNotificationDeliverImmediately
@@ -449,7 +449,7 @@ extern void SACLockScreenImmediate (void);
     } else {
 
         // ... or just update the Dock tile
-        [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"corp.sap.PrivilegesChanged"
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.ripeda.PrivilegesChanged"
                                                                        object:_currentUser
                                                                      userInfo:nil
                                                                       options:NSNotificationDeliverImmediately

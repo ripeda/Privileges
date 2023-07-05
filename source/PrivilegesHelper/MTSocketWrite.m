@@ -40,13 +40,13 @@ limitations under the License.
 - (id)initWithServerAddress:(NSString*)serverAddress serverPort:(NSUInteger)serverPort andProtocol:(MTSocketTransportLayerProtocol)serverProtocol
 {
     self = [super init];
-    
+
     if (self) {
         _serverAddress = serverAddress;
         _serverPort = serverPort;
         _serverProtocol = serverProtocol;
     }
-    
+
     return self;
 }
 
@@ -66,12 +66,12 @@ limitations under the License.
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", ipRegexp];
 
     if ([predicate evaluateWithObject:_serverAddress]) {
-        
+
         _serverAddressResolved = _serverAddress;
         [self udpWriteToOutput:message completionHandler:completionHandler];
-        
+
     } else {
-        
+
         MTResolve *hostResolver = [[MTResolve alloc] init];
         [hostResolver resolveHostname:_serverAddress
                     completionHandler:^(NSArray * _Nullable ipAddresses, NSError * _Nullable error) {
@@ -79,7 +79,7 @@ limitations under the License.
             if (error) {
                 if (completionHandler) { completionHandler(error); }
             } else {
-                
+
                 self->_serverAddressResolved = [ipAddresses firstObject];
                 [self udpWriteToOutput:message completionHandler:completionHandler];
             }
@@ -100,12 +100,12 @@ limitations under the License.
                                         0,
                                         NULL,
                                         NULL);
-    
+
     if (!socket) {
         errorMsg = @"Failed to create socket";
-        
+
     } else {
-        
+
         struct sockaddr_in addr;
         memset(&addr, 0, sizeof(addr));
         addr.sin_len = sizeof(addr);
@@ -117,25 +117,25 @@ limitations under the License.
         CFDataRef msg_data = (__bridge CFDataRef)[message dataUsingEncoding:NSUTF8StringEncoding];
 
         if (addr_data) {
-            
+
             if (msg_data) {
-                
+
                 CFSocketError socketErr = CFSocketSendData(socket, addr_data, msg_data, 0);
-                
+
                 if (socketErr != kCFSocketSuccess) {
                     errorMsg = @"Failed to send data";
                 }
-                
+
             } else {
                 errorMsg = @"No message data";
             }
-            
+
             CFRelease(addr_data);
-            
+
         } else {
             errorMsg = @"IP addess is missing";
         }
-        
+
         CFRelease(socket);
     }
 
@@ -143,7 +143,7 @@ limitations under the License.
         NSDictionary *errorDetail = [NSDictionary dictionaryWithObjectsAndKeys:errorMsg, NSLocalizedDescriptionKey, nil];
         error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:100 userInfo:errorDetail];
     }
-    
+
     if (completionHandler) { completionHandler(error); }
 }
 
@@ -157,12 +157,12 @@ limitations under the License.
                                        NULL,
                                        &writeStream
                                        );
-    
+
     // fill our buffer
     self->_streamCompletionHandler = completionHandler;
     if (!self->_streamData) { self->_streamData = [[NSMutableData alloc] init]; }
     [self->_streamData appendData:[message dataUsingEncoding:NSUTF8StringEncoding]];
-    
+
     // open the output steam. we use a timer to make the process time out
     // if the steam did not become available for a certain amount of time.
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -170,15 +170,15 @@ limitations under the License.
                                                                     repeats:NO
                                                                       block:^(NSTimer * _Nonnull timer) {
             [self closeStream:self->_outputStream];
-            
+
             if (completionHandler) {
                 NSDictionary *errorDetail = [NSDictionary dictionaryWithObjectsAndKeys:@"Failed to open output stream", NSLocalizedDescriptionKey, nil];
                 NSError *error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:100 userInfo:errorDetail];
-                
+
                 completionHandler(error);
             }
         }];
-        
+
         [self createOutputStreamWithCFWriteStreamRef:writeStream];
     });
 }
@@ -190,7 +190,7 @@ limitations under the License.
         {
             break;
         }
-            
+
         case NSStreamEventOpenCompleted:
         {
             // start to write our buffer to the output stream as
@@ -201,33 +201,33 @@ limitations under the License.
             }
             break;
         }
-            
+
         case NSStreamEventHasBytesAvailable:
         {
             break;
         }
-            
+
         case NSStreamEventHasSpaceAvailable:
         {
             [self tcpWriteToOutput];
             break;
         }
-            
+
         case NSStreamEventEndEncountered:
         {
             [self closeStream:stream];
             break;
         }
-          
+
         case NSStreamEventErrorOccurred:
         {
             [self closeStream:stream];
             break;
         }
-            
+
         default: {
 #ifdef DEBUG
-            os_log(OS_LOG_DEFAULT, "SAPCorp: Stream sent an unknown event: %{public}lu", (unsigned long)event);
+            os_log(OS_LOG_DEFAULT, "RIPEDA: Stream sent an unknown event: %{public}lu", (unsigned long)event);
 #endif
             break;
         }
@@ -251,7 +251,7 @@ limitations under the License.
 - (void)tcpWriteToOutput
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-    
+
         if ([self->_streamData length] > 0) {
 
             NSInteger bytesWritten = [self->_outputStream write:[self->_streamData bytes] maxLength:([self->_streamData length] > 1024) ? 1024 : [self->_streamData length]];
@@ -259,20 +259,20 @@ limitations under the License.
             if (bytesWritten > 0) {
                 [self->_streamData replaceBytesInRange:NSMakeRange(0, bytesWritten) withBytes:nil length:0];
             } else if (self->_streamCompletionHandler) {
-                    
+
                 // close the stream
                 [self closeStream:self->_outputStream];
-                
+
                 NSDictionary *errorDetail = [NSDictionary dictionaryWithObjectsAndKeys:@"Writing to output stream failed", NSLocalizedDescriptionKey, nil];
                 NSError *error = [NSError errorWithDomain:[[NSBundle mainBundle] bundleIdentifier] code:100 userInfo:errorDetail];
                 self->_streamCompletionHandler(error);
             }
-            
+
         } else {
-            
+
             // close the stream
             [self closeStream:self->_outputStream];
-            
+
             // write finished
             if (self->_streamCompletionHandler) { self->_streamCompletionHandler(nil); }
         }
