@@ -181,7 +181,7 @@ class GeneratePrivileges:
 
         # codesign
         print("LA:  Codesigning launch agent...")
-        result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", self._app_codesign_identity, Path(DAEMON_SOURCE, "dist", "RIPEDA-Privileges-Watchdog", "RIPEDA-Privileges-Watchdog.app")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", self._app_codesign_identity, Path(DAEMON_SOURCE, "dist", "RIPEDA-Privileges-Watchdog")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.returncode != 0:
             print("Failed to codesign launch daemon.")
             print(result.stdout)
