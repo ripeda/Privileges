@@ -21,6 +21,7 @@ PKG_BUILD_PATH: str = "products/Package"
 
 INSTALL_SCRIPTS_PATH:   str = "source/Scripts (Install)"
 UNINSTALL_SCRIPTS_PATH: str = "source/Scripts (Uninstall)"
+COMPONENT_PATH:         str = "source/component.plist"
 
 
 class GeneratePrivileges:
@@ -145,7 +146,7 @@ class GeneratePrivileges:
             subprocess.run(["cp", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Build package
-            result = subprocess.run(["/usr/bin/pkgbuild", "--root", Path(PKG_BUILD_PATH, variant), "--scripts", INSTALL_SCRIPTS_PATH, "--identifier", "com.ripeda.privileges-client-uninstaller", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(["/usr/bin/pkgbuild", "--component-plist", COMPONENT_PATH, "--root", Path(PKG_BUILD_PATH, variant), "--scripts", INSTALL_SCRIPTS_PATH, "--identifier", "com.ripeda.privileges-client-uninstaller", "--version", self._version, "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode != 0:
                 print("Failed to build package.")
                 print(result.stdout)
