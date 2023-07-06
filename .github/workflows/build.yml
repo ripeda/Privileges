@@ -97,6 +97,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./Sample Profiles/RIPEDA-Privileges-Configuration.mobileconfig
+          file: ./Sample RIPEDA Profile/RIPEDA-Privileges-Configuration.mobileconfig
           tag: ${{ github.ref }}
           file_glob: true
