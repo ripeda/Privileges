@@ -1,5 +1,7 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.5.6
+
 ## 1.5.5
 - Changes org references to RIPEDA (from SAPCorp)
 - Add sample profile
