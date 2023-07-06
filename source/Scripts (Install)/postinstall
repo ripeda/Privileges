@@ -81,4 +81,23 @@ watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-s
 /bin/chmod 644 "$watchdogPlistPath"
 /bin/launchctl bootstrap gui/$(id -u) "$watchdogPlistPath"
 
+# Finally add the app to dock
+# Based off of LGharrison's 'Dock Setup.sh' script
+__dock_item() {
+    printf '%s%s%s%s%s' \
+           '<dict><key>tile-data</key><dict><key>file-data</key><dict>' \
+           '<key>_CFURLString</key><string>' \
+           "$1" \
+           '</string><key>_CFURLStringType</key><integer>0</integer>' \
+           '</dict></dict></dict>'
+}
+
+currentUser=$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
+
+sudo -u "$currentUser" defaults write com.apple.dock \
+            persistent-apps -array-add \
+                        "$(__dock_item /Applications/Privileges.app)" \
+
+killall Dock
+
 exit $exitCode

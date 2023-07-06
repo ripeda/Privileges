@@ -17,6 +17,7 @@ CLI_PATH: str = "/Applications/Privileges.app/Contents/Resources/PrivilegesCLI"
 TIMER_LENGTH: float = 60.0 * 10.0 # 10 minutes
 GLOBAL_TIMER: threading.Timer = None
 
+
 class PrivilegesMode(enum.Enum):
     ADMIN    = "admin"
     STANDARD = "standard"
