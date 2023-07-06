@@ -47,7 +47,7 @@ class GeneratePrivileges:
         Fetches the version from the Info.plist file.
         """
 
-        return "1.5.6"
+        return "1.5.7"
 
 
     def _build_application(self) -> None:
