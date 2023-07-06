@@ -93,7 +93,7 @@ __dock_item() {
 }
 
 # check if app is not already in dock
-result=$( defaults read com.apple.dock persistent-apps | grep -c "Privileges.app" )
+result=$( sudo -u "$currentUser" defaults read com.apple.dock persistent-apps | grep -c "Privileges.app" )
 
 if [[ $result -eq 0 ]]; then
 	currentUser=$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
