@@ -92,12 +92,16 @@ __dock_item() {
            '</dict></dict></dict>'
 }
 
-currentUser=$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
+# check if app is not already in dock
+result=$( defaults read com.apple.dock persistent-apps | grep -c "Privileges.app" )
 
-sudo -u "$currentUser" defaults write com.apple.dock \
-            persistent-apps -array-add \
-                        "$(__dock_item /Applications/Privileges.app)" \
+if [[ $result -eq 0 ]]; then
+	currentUser=$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
+	sudo -u "$currentUser" defaults write com.apple.dock \
+				persistent-apps -array-add \
+							"$(__dock_item /Applications/Privileges.app)" \
 
-killall Dock
+	killall Dock
+fi
 
 exit $exitCode

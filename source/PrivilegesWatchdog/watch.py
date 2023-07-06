@@ -16,6 +16,7 @@ from pathlib import Path
 CLI_PATH: str = "/Applications/Privileges.app/Contents/Resources/PrivilegesCLI"
 TIMER_LENGTH: float = 60.0 * 10.0 # 10 minutes
 GLOBAL_TIMER: threading.Timer = None
+GLOBAL_TIME:  float = 0.0
 
 
 class PrivilegesMode(enum.Enum):
@@ -48,21 +49,23 @@ class PrivilegesWatchdog:
         """
         current_privileges = self._get_current_privileges()
 
-        logging.info(f"Current privileges: {current_privileges}")
-
+        global GLOBAL_TIMER
         if current_privileges == PrivilegesMode.ADMIN:
-            logging.info(f"User is admin, starting timer: {TIMER_LENGTH} seconds")
-            self._start_timer()
+            if GLOBAL_TIMER is None:
+                logging.info(f"User is admin, starting timer: {TIMER_LENGTH} seconds")
+                self._start_timer()
+                return
+            global GLOBAL_TIME
+            logging.info(f"Time remaining: {round(TIMER_LENGTH - (time.time() - GLOBAL_TIME))} seconds")
             return
 
-        global GLOBAL_TIMER
         if GLOBAL_TIMER is not None:
             logging.info("User is not admin, stopping timer")
             GLOBAL_TIMER.cancel()
             GLOBAL_TIMER = None
+            GLOBAL_TIME = 0.0
             return
 
-        logging.info("No timer running")
 
     def _get_current_privileges(self) -> str:
         """
@@ -87,6 +90,9 @@ class PrivilegesWatchdog:
         global GLOBAL_TIMER
         GLOBAL_TIMER = None
 
+        global GLOBAL_TIME
+        GLOBAL_TIME = 0.0
+
 
     def _promote_user(self) -> None:
         """
@@ -106,13 +112,21 @@ class PrivilegesWatchdog:
         GLOBAL_TIMER = threading.Timer(TIMER_LENGTH, self._demote_user)
         GLOBAL_TIMER.start()
 
+        global GLOBAL_TIME
+        GLOBAL_TIME = time.time()
+
 
     def _initialize_logging(self) -> None:
+        path = Path(f"{'~' if os.geteuid() != 0 else ''}/Library/Logs/RIPEDA_Privileges_Watchdog.log").expanduser()
+        if path.exists():
+            subprocess.run(["rm", f"{path}.old"])
+            subprocess.run(["mv", path, f"{path}.old"])
+
         logging.basicConfig(
             level=logging.INFO,
             format="[%(asctime)s] [%(filename)-22s] [%(levelname)-8s] [%(lineno)-3d]: %(message)s",
             handlers=[
-                logging.FileHandler(Path(f"{'~' if os.geteuid() != 0 else ''}/Library/Logs/RIPEDA_Privileges_Watchdog.log").expanduser()),
+                logging.FileHandler(path),
                 logging.StreamHandler()
             ]
         )
