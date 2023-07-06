@@ -1,6 +1,7 @@
 # RIPEDA's Privileges Client Changelog
 
 ## 1.5.6
+- Add support for Universal2 binaries on DEBUG builds
 
 ## 1.5.5
 - Changes org references to RIPEDA (from SAPCorp)
