@@ -17,7 +17,7 @@ if [[ "$3" = "/" ]]; then
 fi
 
 # Unload the watchdog plist
-/bin/launchctl unload "$watchdogPlistPath"
+/bin/launchctl stop com.ripeda.privileges-watchdog.auto-start
 
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/com.ripeda.privileges.helper" \
