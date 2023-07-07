@@ -5,16 +5,20 @@ If they're admin, start a count down timer to demote them.
 If they manually demote themselves, stop the timer.
 """
 
-import subprocess
-import threading
+import os
 import enum
 import time
 import logging
-import os
+import plistlib
+import threading
+import subprocess
+
 from pathlib import Path
 
+
 CLI_PATH: str = "/Applications/Privileges.app/Contents/Resources/PrivilegesCLI"
-TIMER_LENGTH: float = 60.0 * 10.0 # 10 minutes
+CONFIG_PATH: str = "/Library/Managed Preferences/com.ripeda.privileges.plist"
+TIMER_LENGTH: float = 60.0 * 10.0 # Default 10 minutes
 GLOBAL_TIMER: threading.Timer = None
 GLOBAL_TIME:  float = 0.0
 
@@ -34,7 +38,21 @@ class PrivilegesWatchdog:
         if not Path(CLI_PATH).exists():
             raise Exception(f"Privileges CLI not found at {CLI_PATH}")
 
+        self._fetch_config()
         self._start()
+
+
+    def _fetch_config(self) -> None:
+        """
+        Fetch the config from the MDM
+        """
+        if not Path(CONFIG_PATH).exists():
+            return
+        config = plistlib.load(open(CONFIG_PATH, "rb"))
+        if "TimerLength" in config:
+            global TIMER_LENGTH
+            TIMER_LENGTH = config["TimerLength"]
+            logging.info(f"Timer length set to {TIMER_LENGTH} seconds")
 
 
     def _start(self) -> None:

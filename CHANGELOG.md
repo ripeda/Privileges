@@ -2,6 +2,8 @@
 
 ## 1.5.7
 - Resolve RELEASE build support
+- Add Watchdog timer configuration
+  - Through `TimerLength` key in `com.ripeda.privileges` Profile
 
 ## 1.5.6
 - Add support for Universal2 binaries on DEBUG builds
