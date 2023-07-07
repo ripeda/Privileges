@@ -75,13 +75,22 @@ class GeneratePrivileges:
                     sys.exit(1)
 
                 print(f"APP: Signing {variant} variant...")
-                result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", identity, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if result.returncode != 0:
-                    print("Failed to codesign application.")
-                    print(result.stdout)
-                    if result.stderr:
-                        print(result.stderr)
-                    sys.exit(1)
+                apps_to_sign = [
+                    "Privileges.app",
+                    "Privileges.app/Contents/Resources/PrivilegesCLI",
+                    "Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc",
+                    "Privileges.app/Contents/PlugIns/PrivilegesTile.docktileplugin",
+                    "Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc/Contents/Library/LaunchServices/com.ripeda.privileges.helper",
+                ]
+                for app in apps_to_sign:
+                    print(f"APP:   Signing {app if '/' not in app else app.split('/')[-1]}...")
+                    result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", identity, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, app)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    if result.returncode != 0:
+                        print("Failed to codesign application.")
+                        print(result.stdout)
+                        if result.stderr:
+                            print(result.stderr)
+                        sys.exit(1)
 
             thread = threading.Thread(target=_build, args=(self, variant))
             thread.start()

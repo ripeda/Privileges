@@ -1,5 +1,8 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.5.7
+- Resolve RELEASE build support
+
 ## 1.5.6
 - Add support for Universal2 binaries on DEBUG builds
 - Resolve defaults not being read by app

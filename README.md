@@ -19,3 +19,8 @@ Changes include:
 For documentation, please see the original repository:
 
 * [SAP/macOS-enterprise-privileges](https://www.github.com/SAP/macOS-enterprise-privileges)
+
+For logging, note that the Bundle ID has been adjusted (to avoid conflicts with the original Privileges client):
+```sh
+log stream --style syslog --predicate 'messageEvent CONTAINS "RIPEDA: "'
+```
