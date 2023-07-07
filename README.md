@@ -12,7 +12,7 @@ Changes include:
 * LaunchAgent to demote after certain period of time
   * Designed to avoid users from abusing admin privileges indefinitely
     * Works-around `ReasonRequired` being unsupported with `DockToggleTimeout`
-  * Currently set to 10 minutes
+  * Defaults to 10min, configurable via `TimerLength` key in `com.ripeda.privileges` Profile
 * Skip Codesign checks on DEBUG builds
   * Allows for testing of unsigned binaries
 
