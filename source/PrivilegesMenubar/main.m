@@ -13,6 +13,7 @@
 
 @property (nonatomic, strong) NSStatusItem *statusItem;
 @property (nonatomic, strong) NSMenuItem *currentStatusItem;
+@property (nonatomic, strong) NSMenuItem *toggleStatusItem;
 @property (nonatomic, strong) NSImage *iconUnlocked;
 @property (nonatomic, strong) NSImage *iconLocked;
 
@@ -22,8 +23,8 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [self setupMenubar];
-    [self syncStatus];
     [self listenForStatusChange];
+    [self demotePrivileges];
 }
 
 - (BOOL)checkCurrentUserStatus {
@@ -63,10 +64,12 @@
 
     if ([self checkCurrentUserStatus]) {
         [self.currentStatusItem setTitle:@"Current status: Admin"];
+        [self.toggleStatusItem  setTitle:@"Return to Standard user"];
         [self.statusItem.button setImage:self.iconUnlocked];
 
     } else {
         [self.currentStatusItem setTitle:@"Current status: Standard user"];
+        [self.toggleStatusItem  setTitle:@"Request Admin privileges"];
         [self.statusItem.button setImage:self.iconLocked];
     }
 }
@@ -95,6 +98,18 @@
     [task launch];
 }
 
+- (void)demotePrivileges {
+    /*
+        Demote privileges
+    */
+
+    NSTask *task = [[NSTask alloc] init];
+
+    [task setLaunchPath:@"/Applications/Privileges.app/Contents/Resources/PrivilegesCLI"];
+    [task setArguments:@[@"--remove"]];
+
+    [task launch];
+}
 
 - (void)setupMenubar {
     // Create the status item
@@ -130,8 +145,8 @@
     [menu addItem:[NSMenuItem separatorItem]];
 
     // Toggle privileges
-    NSMenuItem *toggleItem = [[NSMenuItem alloc] initWithTitle:@"Toggle privileges" action:@selector(togglePrivileges) keyEquivalent:@""];
-    [menu addItem:toggleItem];
+    self.toggleStatusItem = [[NSMenuItem alloc] initWithTitle:@"Toggle privileges" action:@selector(togglePrivileges) keyEquivalent:@""];
+    [menu addItem:self.toggleStatusItem];
     [menu addItem:[NSMenuItem separatorItem]];
 
     // Set the menu for the status item

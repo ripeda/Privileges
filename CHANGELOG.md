@@ -5,6 +5,7 @@
   - Accompanied by Launch Agent
   - Supersedes dock icon logic
 - Delete Install Package Receipts during uninstall
+- Demote user on login
 
 ## 1.5.7
 - Resolve RELEASE build support
