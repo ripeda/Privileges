@@ -11,10 +11,9 @@ Changes include:
 * Send additional host information (ex. Client name, serial number, etc.)
 * LaunchAgent to demote after certain period of time
   * Designed to avoid users from abusing admin privileges indefinitely
-    * Works-around `ReasonRequired` being unsupported with `DockToggleTimeout`
   * Defaults to 10min, configurable via `TimerLength` key in `com.ripeda.privileges` Profile
-* Skip Codesign checks on DEBUG builds
-  * Allows for testing of unsigned binaries
+* Menubar item for managing Privileges
+* Demote user on login
 
 For documentation, please see the original repository:
 
