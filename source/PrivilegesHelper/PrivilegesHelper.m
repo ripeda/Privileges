@@ -16,6 +16,7 @@
  */
 
 #import "PrivilegesHelper.h"
+#include <AppKit/AppKit.h>
 #import "MTAuthCommon.h"
 #import "Constants.h"
 #import "MTIdentity.h"
@@ -211,6 +212,80 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
         return YES;
     }
 
+    NSWindow *
+    __block myWindow = nil;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Create window saying we're checking server status
+        myWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 350, 200)
+                                            styleMask:NSWindowStyleMaskTitled
+                                              backing:NSBackingStoreBuffered
+                                                defer:NO];
+        [myWindow setTitle:@"Privileges"];
+        [myWindow setReleasedWhenClosed:NO];
+        [myWindow center];
+        [myWindow makeKeyAndOrderFront:nil];
+
+        // Set icon
+        NSImage *icon = [[NSImage alloc] initWithContentsOfFile:@"/Applications/Privileges.app/Contents/Resources/AppIcon.icns"];
+        NSImageView *imageView = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, 96, 96)];
+        [imageView setImage:icon];
+
+        // Calculate the position to center the image vertically
+        CGFloat windowContentHeight = myWindow.contentView.frame.size.height;
+        CGFloat imageHeight = imageView.frame.size.height;
+        CGFloat verticalOffset = (windowContentHeight - imageHeight) / 2.0 + 30;
+
+        // Set the frame of the image view to align it to the top and center
+        NSRect imageFrame = imageView.frame;
+        imageFrame.origin.y = verticalOffset;
+        imageFrame.origin.x = 127;
+        [imageView setFrame:imageFrame];
+
+        [myWindow.contentView addSubview:imageView];
+
+
+        // Add text: Checking server status
+        NSTextField *checkingServerStatus = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 350, 20)];
+        [checkingServerStatus setStringValue:@"Checking server status..."];
+        [checkingServerStatus setEditable:NO];
+        [checkingServerStatus setBordered:NO];
+        [checkingServerStatus setDrawsBackground:NO];
+        [checkingServerStatus setAlignment:NSTextAlignmentCenter];
+        [checkingServerStatus setFont:[NSFont systemFontOfSize:18]];
+
+        // Calculate the position to center the text vertically
+        CGFloat checkingServerStatusHeight = checkingServerStatus.frame.size.height;
+        CGFloat verticalOffset2 = (windowContentHeight - checkingServerStatusHeight) / 2.0 - 40;
+
+        // Set the frame of the text to align it to the top and center
+        NSRect checkingServerStatusFrame = checkingServerStatus.frame;
+        checkingServerStatusFrame.origin.y = verticalOffset2;
+        [checkingServerStatus setFrame:checkingServerStatusFrame];
+
+        [myWindow.contentView addSubview:checkingServerStatus];
+
+
+        // Add progress bar, pulsing
+        NSProgressIndicator *progressBar = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(0, 0, 250, 20)];
+        [progressBar setIndeterminate:YES];
+        [progressBar startAnimation:nil];
+
+        // Calculate the position to center the progress bar vertically
+        CGFloat progressBarHeight = progressBar.frame.size.height;
+        CGFloat verticalOffset3 = (windowContentHeight - progressBarHeight) / 2.0 - 70;
+
+        // Set the frame of the progress bar to align it to the top and center
+        NSRect progressBarFrame = progressBar.frame;
+        progressBarFrame.origin.y = verticalOffset3;
+        progressBarFrame.origin.x = 50;
+        [progressBar setFrame:progressBarFrame];
+
+        [myWindow.contentView addSubview:progressBar];
+
+    });
+
+
 #ifdef DEBUG
     /*
         Allow tester to override this check with the presence of a file
@@ -218,6 +293,11 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     */
     NSString *testFile = @"/Users/Shared/.ripeda_lock_override";
     if ([[NSFileManager defaultManager] fileExistsAtPath:testFile]) {
+        // Dismiss prompt
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[NSApp modalWindow] close];
+        });
+
         return YES;
     }
 #endif
@@ -257,6 +337,10 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
         } else {
             // Unknown server type
             os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! Server status only supported on HTTP/HTTPS, treating as online");
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [myWindow close];
+            });
+
             return YES;
         }
 
@@ -264,8 +348,16 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     } else {
         // No server configured
         os_log(OS_LOG_DEFAULT, "RIPEDA: ERROR! No server configured, treating as online");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [myWindow close];
+        });
+
         return YES;
     }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [myWindow close];
+    });
 
     return serverUp;
 }
