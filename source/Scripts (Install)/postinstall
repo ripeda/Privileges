@@ -79,7 +79,7 @@ fi
 # Will already be in place, just need to set permissions and load it
 watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist"
 /bin/chmod 644 "$watchdogPlistPath"
-/bin/launchctl bootstrap system "$watchdogPlistPath"
+sudo -u "$currentUser" /bin/launchctl load "$watchdogPlistPath"
 
 # Finally add the app to dock
 # Based off of LGharrison's 'Dock Setup.sh' script

@@ -17,7 +17,8 @@ if [[ "$3" = "/" ]]; then
 fi
 
 # Unload the watchdog plist
-/bin/launchctl bootout system $watchdogPlistPath
+currentUser=$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')
+sudo -u "$currentUser" /bin/launchctl unload $watchdogPlistPath
 
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/com.ripeda.privileges.helper" \

@@ -6,7 +6,6 @@ If they manually demote themselves, stop the timer.
 """
 
 import os
-import queue
 import enum
 import time
 import rumps
