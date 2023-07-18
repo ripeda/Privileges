@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import time
 import argparse
 import subprocess
-import plistlib
 import threading
 
 from pathlib import Path
@@ -22,6 +22,7 @@ PKG_BUILD_PATH: str = "products/Package"
 INSTALL_SCRIPTS_PATH:   str = "source/Scripts (Install)"
 UNINSTALL_SCRIPTS_PATH: str = "source/Scripts (Uninstall)"
 COMPONENT_PATH:         str = "source/component.plist"
+MENUBAR_ICONS_PATH:     str = "source/Support Icons"
 
 
 class GeneratePrivileges:
@@ -31,6 +32,7 @@ class GeneratePrivileges:
         """
         Initializes the build process.
         """
+        os.chdir(Path(__file__).parent)
 
         self._version: str = self._fetch_version()
         self._app_codesign_identity: str = "-" if app_codesign_identity is None else app_codesign_identity
@@ -73,6 +75,10 @@ class GeneratePrivileges:
                     if result.stderr:
                         print(result.stderr)
                     sys.exit(1)
+
+                # app Menubar icon
+                for icon in Path(MENUBAR_ICONS_PATH).glob("*.icns"):
+                    subprocess.run(["cp", icon, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app", "Contents", "Resources", icon.name)])
 
                 print(f"APP: Signing {variant} variant...")
                 apps_to_sign = [

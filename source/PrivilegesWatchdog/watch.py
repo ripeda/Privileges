@@ -6,8 +6,10 @@ If they manually demote themselves, stop the timer.
 """
 
 import os
+import queue
 import enum
 import time
+import rumps
 import logging
 import plistlib
 import threading
@@ -39,7 +41,9 @@ class PrivilegesWatchdog:
             raise Exception(f"Privileges CLI not found at {CLI_PATH}")
 
         self._fetch_config()
-        self._start()
+        threading.Thread(target=self._start).start()
+        self.menubar = WatchdogMenubar()
+        self.menubar.run()
 
 
     def _fetch_config(self) -> None:
@@ -66,6 +70,9 @@ class PrivilegesWatchdog:
         Check the current privileges mode
         """
         current_privileges = self._get_current_privileges()
+
+        if hasattr(self, "menubar"):
+            self.menubar._refresh()
 
         global GLOBAL_TIMER
         if current_privileges == PrivilegesMode.ADMIN:
@@ -148,6 +155,116 @@ class PrivilegesWatchdog:
                 logging.StreamHandler()
             ]
         )
+
+
+class WatchdogMenubar(rumps.App):
+
+    def __init__(self) -> None:
+        super().__init__("Privileges Watchdog")
+        self.menu = [
+            rumps.MenuItem("Privileges:"),
+            rumps.MenuItem("  Allows you to request admin privileges"),
+            rumps.MenuItem("  for a limited amount of time."),
+            None,
+            rumps.MenuItem(f"Current status: Admin"),
+            None,
+            rumps.MenuItem("Toggle privileges", callback=self._change_user),
+        ]
+
+        self.quit_button = None
+        self._refresh()
+        self.template = True
+
+
+    def _refresh(self) -> None:
+        """
+        Refresh the menubar
+        """
+        # grab current privileges
+        current_privileges = self._fetch_status()
+
+        # Update 'Current Status' menu item
+        label = ""
+        for item in self.menu:
+            if str(item).startswith("Current status:"):
+                label = str(item)
+                break
+        self.menu[label].title = f"Current status: {'Admin' if current_privileges else 'Standard User'}"
+        self.icon = self._fetch_icon_unlocked() if current_privileges else self._fetch_icon_locked()
+
+
+    def _fetch_version(self) -> str:
+        """
+        Fetch the version of Privileges
+        """
+        if not Path("/Applications/Privileges.app/Contents/Info.plist").exists():
+            return "1.0.0"
+        info = plistlib.load(open("/Applications/Privileges.app/Contents/Info.plist", "rb"))
+        return info["CFBundleShortVersionString"]
+
+
+    def _fetch_icon_unlocked(self) -> str:
+        """
+        Fetch the icon of Privileges
+        """
+        icon = "/Applications/Privileges.app/Contents/Resources/MenubarIconUnlocked.icns"
+        if not Path(icon).exists():
+            return None
+        return icon
+
+
+    def _fetch_icon_locked(self) -> str:
+        """
+        Fetch the icon of Privileges
+        """
+        icon = "/Applications/Privileges.app/Contents/Resources/MenubarIconLocked.icns"
+        if not Path(icon).exists():
+            return None
+        return icon
+
+
+    def _fetch_status(self) -> bool:
+        """
+        Return admin status
+        True if admin, False if standard
+        """
+        result = subprocess.run([CLI_PATH, "--status"], capture_output=True)
+        if result.returncode != 0:
+            return False
+
+        if "has admin rights" in result.stderr.decode("utf-8"):
+            return True
+        return False
+
+
+    def _change_user(self, sender) -> None:
+        """
+        Change the user
+        """
+        if self._fetch_status():
+            self._demote_user(sender)
+            time.sleep(1)
+            self._refresh()
+            return
+
+        self._promote_user(sender)
+        time.sleep(1)
+        self._refresh()
+
+
+    def _demote_user(self, _) -> None:
+        """
+        Demote the user
+        """
+        subprocess.run([CLI_PATH, "--remove"])
+
+
+    def _promote_user(self, _) -> None:
+        """
+        Promote the user
+        """
+        subprocess.run(["open", "/Applications/Privileges.app"])
+
 
 if __name__ == "__main__":
     PrivilegesWatchdog()

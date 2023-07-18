@@ -1,5 +1,8 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.5.8
+- Add Menubar item for toggling
+
 ## 1.5.7
 - Resolve RELEASE build support
 - Add Watchdog timer configuration
