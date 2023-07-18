@@ -75,33 +75,13 @@ else
 fi
 
 
-# Next handle 'com.ripeda.privileges-watchdog.auto-start.plist'
+# Next handle 'com.ripeda.privileges-watchdog.plist'
 # Will already be in place, just need to set permissions and load it
-watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist"
+watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.plist"
+menubarPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-menubar.plist"
 /bin/chmod 644 "$watchdogPlistPath"
+/bin/chmod 644 "$menubarPlistPath"
 sudo -u "$currentUser" /bin/launchctl load "$watchdogPlistPath"
-
-# Finally add the app to dock
-# Based off of LGharrison's 'Dock Setup.sh' script
-__dock_item() {
-    printf '%s%s%s%s%s' \
-           '<dict><key>tile-data</key><dict><key>file-data</key><dict>' \
-           '<key>_CFURLString</key><string>' \
-           "$1" \
-           '</string><key>_CFURLStringType</key><integer>0</integer>' \
-           '</dict></dict></dict>'
-}
-
-# check if app is not already in dock
-result=$( sudo -u "$currentUser" defaults read com.apple.dock persistent-apps | grep -c "Privileges.app" )
-
-if [[ $result -eq 0 ]]; then
-	currentUser=$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
-	sudo -u "$currentUser" defaults write com.apple.dock \
-				persistent-apps -array-add \
-							"$(__dock_item /Applications/Privileges.app)" \
-
-	killall Dock
-fi
+sudo -u "$currentUser" /bin/launchctl load "$menubarPlistPath"
 
 exit $exitCode

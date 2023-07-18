@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.ripeda.privileges</string>
+	<key>Label</key>
+	<string>com.ripeda.privileges-menubar.auto-start</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Applications/Privileges.app/Contents/Resources/PrivilegesMenubar</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
+</plist>

@@ -23,6 +23,7 @@ INSTALL_SCRIPTS_PATH:   str = "source/Scripts (Install)"
 UNINSTALL_SCRIPTS_PATH: str = "source/Scripts (Uninstall)"
 COMPONENT_PATH:         str = "source/component.plist"
 MENUBAR_ICONS_PATH:     str = "source/Support Icons"
+LAUNCH_AGENTS:          str = "source/Support LaunchAgents"
 
 
 class GeneratePrivileges:
@@ -84,6 +85,7 @@ class GeneratePrivileges:
                 apps_to_sign = [
                     "Privileges.app",
                     "Privileges.app/Contents/Resources/PrivilegesCLI",
+                    "Privileges.app/Contents/Resources/PrivilegesMenubar",
                     "Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc",
                     "Privileges.app/Contents/PlugIns/PrivilegesTile.docktileplugin",
                     "Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc/Contents/Library/LaunchServices/com.ripeda.privileges.helper",
@@ -161,8 +163,9 @@ class GeneratePrivileges:
             # Copy application to package directory
             subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            # Copy launch daemon to package directory from RIPEDA-Privileges-Watchdog
-            subprocess.run(["cp", Path(DAEMON_SOURCE, "com.ripeda.privileges-watchdog.auto-start.plist"), Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # Copy launch agents
+            for agent in Path(LAUNCH_AGENTS).glob("*.plist"):
+                subprocess.run(["cp", agent, Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             # Copy uninstaller to package directory
             subprocess.run(["cp", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

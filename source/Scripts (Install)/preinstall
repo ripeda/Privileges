@@ -7,7 +7,8 @@
 exec >/dev/null 2>&1
 
 helperPlistPath="$3/Library/LaunchDaemons/com.ripeda.privileges.helper.plist"
-watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist"
+watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.plist"
+menubarPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-menubar.plist"
 
 /usr/bin/killall Privileges
 
@@ -19,11 +20,13 @@ fi
 # Unload the watchdog plist
 currentUser=$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')
 sudo -u "$currentUser" /bin/launchctl unload $watchdogPlistPath
+sudo -u "$currentUser" /bin/launchctl unload $menubarPlistPath
 
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/com.ripeda.privileges.helper" \
             "$3/Applications/Privileges.app" \
-            "$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.auto-start.plist" \
+            "$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.plist" \
+            "$3/Library/LaunchAgents/com.ripeda.privileges-menubar.plist" \
             "$3/Library/Application Support/RIPEDA/RIPEDA Client/Uninstall-RIPEDA-Privileges-Client.pkg"
 
 exit 0

@@ -1,7 +1,9 @@
 # RIPEDA's Privileges Client Changelog
 
 ## 1.5.8
-- Add Menubar item for toggling
+- Implement new Menubar item for managing Privileges
+  - Accompanied by Launch Agent
+  - Supersedes dock icon logic
 
 ## 1.5.7
 - Resolve RELEASE build support
