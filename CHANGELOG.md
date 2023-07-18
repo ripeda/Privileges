@@ -4,6 +4,7 @@
 - Implement new Menubar item for managing Privileges
   - Accompanied by Launch Agent
   - Supersedes dock icon logic
+- Delete Install Package Receipts during uninstall
 
 ## 1.5.7
 - Resolve RELEASE build support

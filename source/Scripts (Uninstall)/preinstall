@@ -37,4 +37,17 @@ if [[ -z $(/bin/ls -A "$3/Library/Application Support/RIPEDA") ]]; then
     /bin/rm -rf "$3/Library/Application Support/RIPEDA"
 fi
 
+# Delete old package receipts for installer
+recipt_base="$3/var/db/receipts/com.ripeda.privileges-client-installer"
+recipt_plist="$recipt_base.plist"
+recipt_bom="$recipt_base.bom"
+
+if [[ -f "$recipt_plist" ]]; then
+    /bin/rm -f "$recipt_plist"
+fi
+
+if [[ -f "$recipt_bom" ]]; then
+    /bin/rm -f "$recipt_bom"
+fi
+
 exit 0
