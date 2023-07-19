@@ -93,8 +93,8 @@
         [self.statusItem.button setImage:self.iconUnlocked];
         [self demoteAfterTimeout];
     } else {
-        [self.currentStatusItem setTitle:@"Current status: Standard user"];
-        [self.toggleStatusItem  setTitle:@"Request Admin privileges"];
+        [self.currentStatusItem setTitle:@"Current status: Standard User"];
+        [self.toggleStatusItem  setTitle:@"Request Admin Privileges"];
         [self.statusItem.button setImage:self.iconLocked];
         [self.statusItem.button setTitle:@""];
         [self invalidateTimer];
