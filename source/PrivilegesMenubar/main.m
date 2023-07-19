@@ -25,6 +25,7 @@
     [self setupMenubar];
     [self listenForStatusChange];
     [self demotePrivileges];
+    [self syncStatus];
 }
 
 - (BOOL)checkCurrentUserStatus {
