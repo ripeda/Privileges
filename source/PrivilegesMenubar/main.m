@@ -63,7 +63,6 @@
     return isAdmin;
 }
 
-// Fetch configured timeout
 - (int)fetchTimeout {
     /*
         Fetch configured timeout
@@ -71,10 +70,9 @@
 
     int timeout = 300;
 
-    // "/Library/Managed Preferences/com.ripeda.privileges.plist"
     NSString *plistPath = @"/Library/Managed Preferences/com.ripeda.privileges.plist";
     NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
-    // TimerLength
+
     if ([plist objectForKey:@"TimerLength"]) {
         timeout = [[plist objectForKey:@"TimerLength"] intValue];
     }
