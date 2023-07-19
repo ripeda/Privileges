@@ -77,6 +77,8 @@ fi
 
 menubarPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-menubar.plist"
 /bin/chmod 644 "$menubarPlistPath"
-sudo -u "$currentUser" /bin/launchctl load "$menubarPlistPath"
+
+currentUserUID=$(/usr/bin/id -u "$currentUser")
+/bin/launchctl asuser "$currentUserUID" /bin/launchctl load -w "$menubarPlistPath"
 
 exit $exitCode

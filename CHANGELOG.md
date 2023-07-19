@@ -1,5 +1,9 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.6.0
+- Resolve Menubar failing to launch from Managed Software Center installs
+- Resolve negative timer values in menubar item
+
 ## 1.5.9
 - Move timeout to Menubar item
   - Displays time remaining while admin

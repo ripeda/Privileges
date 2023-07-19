@@ -155,6 +155,11 @@
         return;
     }
 
+    if (self.demoteTimer.fireDate.timeIntervalSinceNow < 0) {
+        [self demotePrivileges];
+        return;
+    }
+
     NSString *timeLeft = [self timeFormatted:self.demoteTimer.fireDate.timeIntervalSinceNow];
     [self.statusItem.button setTitle:timeLeft];
 }

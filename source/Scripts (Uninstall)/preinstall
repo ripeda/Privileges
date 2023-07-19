@@ -17,7 +17,8 @@ if [[ "$3" = "/" ]]; then
 fi
 
 currentUser=$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')
-sudo -u "$currentUser" /bin/launchctl unload $menubarPlistPath
+currentUserUID=$(/usr/bin/id -u "$currentUser")
+/bin/launchctl asuser "$currentUserUID" /bin/launchctl unload -w "$menubarPlistPath"
 
 /bin/rm -rf "$helperPlistPath" \
             "$3/Library/PrivilegedHelperTools/com.ripeda.privileges.helper" \
