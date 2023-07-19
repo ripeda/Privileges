@@ -65,10 +65,10 @@
 
 - (int)fetchTimeout {
     /*
-        Fetch configured timeout
+        Fetch configured timeout (in seconds)
     */
 
-    int timeout = 300;
+    int timeout = 60 * 5;
 
     NSString *plistPath = @"/Library/Managed Preferences/com.ripeda.privileges.plist";
     NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
@@ -101,21 +101,19 @@
 
 - (void)demoteAfterTimeout {
     /*
-        Demote privileges after 5 minutes
+        Demote privileges after specified timeout (in seconds)
     */
 
     if (self.demoteTimer.isValid) {
         return;
     }
 
-    // Set timer to 5 minutes
     self.demoteTimer = [NSTimer scheduledTimerWithTimeInterval:[self fetchTimeout]
                                                   target:self
                                                 selector:@selector(demotePrivileges)
                                                 userInfo:nil
                                                  repeats:NO];
 
-    // Update the time left label every second
     [self updateTimerLabel];
     self.labelTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
                                      target:self

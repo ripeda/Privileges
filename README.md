@@ -11,7 +11,7 @@ Changes include:
 * Send additional host information (ex. Client name, serial number, etc.)
 * LaunchAgent to demote after certain period of time
   * Designed to avoid users from abusing admin privileges indefinitely
-  * Defaults to 10min, configurable via `TimerLength` key in `com.ripeda.privileges` Profile
+  * Defaults to 5 min, configurable via `TimerLength` key in `com.ripeda.privileges` Profile
 * Menubar item for managing Privileges
 * Demote user on login
 
