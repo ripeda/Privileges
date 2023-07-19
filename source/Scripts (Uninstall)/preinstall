@@ -7,7 +7,6 @@
 exec >/dev/null 2>&1
 
 helperPlistPath="$3/Library/LaunchDaemons/com.ripeda.privileges.helper.plist"
-watchdogPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-watchdog.plist"
 menubarPlistPath="$3/Library/LaunchAgents/com.ripeda.privileges-menubar.plist"
 
 /usr/bin/killall Privileges
@@ -17,9 +16,7 @@ if [[ "$3" = "/" ]]; then
 	/bin/launchctl bootout system "$helperPlistPath"
 fi
 
-# Unload the watchdog plist
 currentUser=$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')
-sudo -u "$currentUser" /bin/launchctl unload $watchdogPlistPath
 sudo -u "$currentUser" /bin/launchctl unload $menubarPlistPath
 
 /bin/rm -rf "$helperPlistPath" \

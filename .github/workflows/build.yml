@@ -27,9 +27,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip3 install pyinstaller
-
       - name: Import Application Distribution Certificate
         uses: dhinakg/import-codesign-certs@master
         with:

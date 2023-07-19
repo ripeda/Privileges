@@ -12,10 +12,15 @@
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
 @property (nonatomic, strong) NSStatusItem *statusItem;
+
 @property (nonatomic, strong) NSMenuItem *currentStatusItem;
 @property (nonatomic, strong) NSMenuItem *toggleStatusItem;
+
 @property (nonatomic, strong) NSImage *iconUnlocked;
 @property (nonatomic, strong) NSImage *iconLocked;
+
+@property (nonatomic, strong) NSTimer *demoteTimer;
+@property (nonatomic, strong) NSTimer *labelTimer;
 
 @end
 
@@ -58,6 +63,25 @@
     return isAdmin;
 }
 
+// Fetch configured timeout
+- (int)fetchTimeout {
+    /*
+        Fetch configured timeout
+    */
+
+    int timeout = 300;
+
+    // "/Library/Managed Preferences/com.ripeda.privileges.plist"
+    NSString *plistPath = @"/Library/Managed Preferences/com.ripeda.privileges.plist";
+    NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
+    // TimerLength
+    if ([plist objectForKey:@"TimerLength"]) {
+        timeout = [[plist objectForKey:@"TimerLength"] intValue];
+    }
+
+    return timeout;
+}
+
 - (void)syncStatus {
     /*
         Sync the status item with the current user status
@@ -67,12 +91,76 @@
         [self.currentStatusItem setTitle:@"Current status: Admin"];
         [self.toggleStatusItem  setTitle:@"Return to Standard user"];
         [self.statusItem.button setImage:self.iconUnlocked];
-
+        [self demoteAfterTimeout];
     } else {
         [self.currentStatusItem setTitle:@"Current status: Standard user"];
         [self.toggleStatusItem  setTitle:@"Request Admin privileges"];
         [self.statusItem.button setImage:self.iconLocked];
+        [self.statusItem.button setTitle:@""];
+        [self invalidateTimer];
     }
+}
+
+- (void)demoteAfterTimeout {
+    /*
+        Demote privileges after 5 minutes
+    */
+
+    if (self.demoteTimer.isValid) {
+        return;
+    }
+
+    // Set timer to 5 minutes
+    self.demoteTimer = [NSTimer scheduledTimerWithTimeInterval:[self fetchTimeout]
+                                                  target:self
+                                                selector:@selector(demotePrivileges)
+                                                userInfo:nil
+                                                 repeats:NO];
+
+    // Update the time left label every second
+    [self updateTimerLabel];
+    self.labelTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
+                                     target:self
+                                   selector:@selector(updateTimerLabel)
+                                   userInfo:nil
+                                    repeats:YES];
+
+}
+
+// Convert seconds to readable time
+- (NSString *)timeFormatted:(int)totalSeconds {
+    /*
+        Convert seconds to readable time
+    */
+
+    int seconds = totalSeconds % 60;
+    int minutes = (totalSeconds / 60) % 60;
+
+    return [NSString stringWithFormat:@"%02d:%02d", minutes, seconds];
+}
+
+- (void)invalidateTimer {
+    /*
+        Invalidate timer
+    */
+
+    [self.demoteTimer invalidate];
+    [self.labelTimer invalidate];
+}
+
+
+- (void)updateTimerLabel {
+    /*
+        Update the time left label
+    */
+
+    if (!self.demoteTimer.isValid || !self.demoteTimer) {
+        [self.statusItem.button setTitle:@""];
+        return;
+    }
+
+    NSString *timeLeft = [self timeFormatted:self.demoteTimer.fireDate.timeIntervalSinceNow];
+    [self.statusItem.button setTitle:timeLeft];
 }
 
 - (void)listenForStatusChange {
@@ -128,17 +216,28 @@
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Menu"];
 
     // Description
-    NSArray *menuItems = @[
+    NSArray *description = @[
         @"Privileges:",
         @"  Allows you to request admin privileges",
         @"  for a limited amount of time.",
     ];
 
-    for (NSString *menuItem in menuItems) {
+    for (NSString *menuItem in description) {
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:menuItem action:nil keyEquivalent:@""];
         [menu addItem:item];
     }
     [menu addItem:[NSMenuItem separatorItem]];
+
+    NSArray *greatPower = @[
+        @"With great power comes great responsibility.",
+        @"  - Uncle Ben",
+    ];
+    for (NSString *menuItem in greatPower) {
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:menuItem action:nil keyEquivalent:@""];
+        [menu addItem:item];
+    }
+    [menu addItem:[NSMenuItem separatorItem]];
+
 
     // Current status
     self.currentStatusItem = [[NSMenuItem alloc] initWithTitle:@"Current status: Unknown" action:nil keyEquivalent:@""];

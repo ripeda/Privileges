@@ -1,5 +1,10 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.5.9
+- Move timeout to Menubar item
+  - Displays time remaining while admin
+  - Supersedes Watchdog timer and drops Python dependency in app
+
 ## 1.5.8
 - Implement new Menubar item for managing Privileges
   - Accompanied by Launch Agent
