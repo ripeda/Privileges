@@ -1,5 +1,7 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.6.1
+
 ## 1.6.0
 - Resolve Menubar failing to launch from Managed Software Center installs
 - Resolve negative timer values in menubar item
