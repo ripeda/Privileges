@@ -21,5 +21,5 @@ For documentation, please see the original repository:
 
 For logging, note that the Bundle ID has been adjusted (to avoid conflicts with the original Privileges client):
 ```sh
-log stream --style syslog --predicate 'messageEvent CONTAINS "RIPEDA: "'
+log stream --style syslog --predicate 'evantMessage CONTAINS "RIPEDA: "'
 ```
