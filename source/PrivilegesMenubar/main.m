@@ -8,6 +8,7 @@
 
 #include <AppKit/AppKit.h>
 #include <Foundation/Foundation.h>
+#import "Constants.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
@@ -68,13 +69,12 @@
         Fetch configured timeout (in seconds)
     */
 
-    int timeout = 60 * 5;
+    int timeout = kMTMenubarTimeoutDefault * 60;
 
-    NSString *plistPath = @"/Library/Managed Preferences/com.ripeda.privileges.plist";
-    NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
+    NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ripeda.privileges"];
 
-    if ([plist objectForKey:@"TimerLength"]) {
-        timeout = [[plist objectForKey:@"TimerLength"] intValue];
+    if ([userDefaults objectForKey:kMTDefaultsMenubarTimeout]) {
+        timeout = [[userDefaults objectForKey:kMTDefaultsMenubarTimeout] intValue] * 60;
     }
 
     return timeout;

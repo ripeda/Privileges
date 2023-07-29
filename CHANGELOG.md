@@ -1,6 +1,10 @@
 # RIPEDA's Privileges Client Changelog
 
 ## 1.6.1
+- Rename `TimerLength` key to `MenubarTimeout`
+  - Set to minute increments to match SAP's Dock Toggle logic
+- Add new `ExcludeUsers` key
+  - Allows exemptions for configured users (ex. IT staff)
 
 ## 1.6.0
 - Resolve Menubar failing to launch from Managed Software Center installs

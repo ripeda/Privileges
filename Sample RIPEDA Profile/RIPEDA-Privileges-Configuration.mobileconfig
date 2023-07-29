@@ -14,8 +14,12 @@
 						<dict>
 							<key>mcx_preference_settings</key>
 							<dict>
-								<key>TimerLength</key>
-								<integer>600</integer>    <!-- 10 minutes -->
+								<key>ExcludeUsers</key>
+								<array>
+									<string>itadmin</string>
+								</array>
+								<key>MenubarTimeout</key>
+								<integer>10</integer>    <!-- 10 minutes -->
 								<key>ReasonRequired</key>
 								<true/>
 								<key>ReasonMinLength</key>

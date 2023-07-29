@@ -362,6 +362,21 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
     return serverUp;
 }
 
+- (BOOL)isUserExempted:(NSString*)userName
+{
+    NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ripeda.privileges"];
+    NSArray *exemptedUsers = [userDefaults objectForKey:kMTDefaultsExcludeUsers];
+
+    for (NSString *exemptedUser in exemptedUsers) {
+        if ([userName isEqualToString:exemptedUser]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
+
 - (void)changeAdminRightsForUser:(NSString*)userName
                           remove:(BOOL)remove
                           reason:(NSString*)reason
@@ -416,7 +431,12 @@ OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement)
 
                     // add or remove the user to/from the group
                     if (remove) {
-                        CSIdentityRemoveMember(csGroupIdentity, csUserIdentity);
+                        if ([self isUserExempted:userName]) {
+                            errorMsg = @"User is an exempted account, cannot remove";
+                            error = [NSError errorWithDomain:NSOSStatusErrorDomain code:errAuthorizationDenied userInfo:@{NSLocalizedDescriptionKey: errorMsg}];
+                        } else {
+                            CSIdentityRemoveMember(csGroupIdentity, csUserIdentity);
+                        }
                     } else {
                         CSIdentityAddMember(csGroupIdentity, csUserIdentity);
                     }
