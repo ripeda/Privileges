@@ -29,6 +29,14 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [self setupMenubar];
+    if ([self userIsExemptFromDemotion]) {
+        [self.statusItem.button setTitle:@"Exempt"];
+        [self.statusItem.button setImage:self.iconUnlocked];
+        [self.currentStatusItem setTitle:@"Current status: Admin (Exempt from demotion)"];
+        [self.toggleStatusItem setHidden:YES];
+        return;
+    }
+
     [self listenForStatusChange];
     [self demotePrivileges];
     [self syncStatus];
@@ -62,6 +70,24 @@
     }
 
     return isAdmin;
+}
+
+- (BOOL)userIsExemptFromDemotion {
+    /*
+        Check if user is exempt from demotion
+    */
+    NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ripeda.privileges"];
+
+    if ([userDefaults objectForKey:kMTDefaultsExcludeUsers]) {
+        NSArray *excludedUsers = [userDefaults objectForKey:kMTDefaultsExcludeUsers];
+        NSString *currentUserName = NSUserName();
+
+        if ([excludedUsers containsObject:currentUserName]) {
+            return YES;
+        }
+    }
+
+    return NO;
 }
 
 - (int)fetchTimeout {
