@@ -1,5 +1,8 @@
 # RIPEDA's Privileges Client Changelog
 
+## 1.6.2
+- Switch to Developer ID certificates for signing
+
 ## 1.6.1
 - Rename `TimerLength` key to `MenubarTimeout`
   - Set to minute increments to match SAP's Dock Toggle logic
