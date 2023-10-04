@@ -50,7 +50,7 @@ jobs:
           p12-password: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_CERT_P12_PASSWORD }}
 
       - name: Build Project
-        run: ./Build-Project.tool --app_signing_identity "${{ env.ORG_MAC_IDENTITY }}" --pkg_signing_identity "${{ env.ORG_MAC_IDENTITY }}"
+        run: ./Build-Project.tool --app_signing_identity "${{ env.ORG_MAC_IDENTITY }}" --pkg_signing_identity "${{ env.ORG_MAC_IDENTITY }}" --notarize_team_id "${{ env.ORG_MAC_NOTARIZATION_TEAM_ID }}" --notarize_apple_id "${{ env.ORG_MAC_NOTARIZATION_APPLE_ID }}" --notarize_password "${{ env.ORG_MAC_NOTARIZATION_PASSWORD }}"
 
       - name: Upload Privileges (Release)
         uses: actions/upload-artifact@v2

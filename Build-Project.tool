@@ -25,6 +25,54 @@ MENUBAR_ICONS_PATH:     str = "source/Support Icons"
 LAUNCH_AGENTS:          str = "source/Support LaunchAgents"
 
 
+NOTARIZATION_TEAM_ID:  str = None
+NOTARIZATION_APPLE_ID: str = None
+NOTARIZATION_PASSWORD: str = None
+
+
+class Notarize:
+
+    def __init__(self, file: str) -> None:
+        self._file     = file
+        self._apple_id = NOTARIZATION_APPLE_ID
+        self._password = NOTARIZATION_PASSWORD
+        self._team_id  = NOTARIZATION_TEAM_ID
+
+
+    def sign(self) -> None:
+        if any([self._apple_id is None, self._password is None, self._team_id is None]):
+            print("Error: Notarization credentials not provided, skipping")
+            return
+
+        arguments = [
+            "xcrun", "notarytool", "submit", self._file, "--apple-id", self._apple_id, "--password", self._password, "--team-id", self._team_id, "--wait"
+        ]
+        result = subprocess.run(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            print(f"Error notarizing: {result.stderr.decode('utf-8')}")
+            sys.exit(1)
+        if "status: Accepted" not in result.stdout.decode("utf-8"):
+            print(f"Error notarizing: {self._fetch_error(self._decode_id_from_stdout(result.stdout.decode('utf-8')))}")
+            sys.exit(1)
+
+
+    def _decode_id_from_stdout(self, stdout: str) -> str:
+        """
+        Extract the ID from the stdout
+        """
+        for line in stdout.split("\n"):
+            if line.startswith("  id: "):
+                return line[6:]
+        return None
+
+
+    def _fetch_error(self, id: str) -> str:
+        result = subprocess.run(["xcrun", "notarytool", "log", id, "--apple-id", self._apple_id, "--password", self._password, "--team-id", self._team_id], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            return result.stderr.decode("utf-8")
+        return result.stdout.decode("utf-8")
+
+
 class GeneratePrivileges:
 
 
@@ -168,7 +216,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Builds Privileges.")
     parser.add_argument("--app_signing_identity", type=str, help="App Signing identity")
     parser.add_argument("--pkg_signing_identity", type=str, help="PKG Signing identity")
+    parser.add_argument("--notarize_apple_id", type=str, help="Apple ID")
+    parser.add_argument("--notarize_password", type=str, help="Password")
+    parser.add_argument("--notarize_team_id", type=str, help="Team ID")
+
     args = parser.parse_args()
+
+    NOTARIZATION_APPLE_ID = args.notarize_apple_id
+    NOTARIZATION_PASSWORD = args.notarize_password
+    NOTARIZATION_TEAM_ID  = args.notarize_team_id
 
     GeneratePrivileges(args.app_signing_identity, args.pkg_signing_identity)
 
