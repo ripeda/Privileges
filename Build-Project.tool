@@ -4,8 +4,9 @@ import os
 import sys
 import time
 import argparse
-import subprocess
 import threading
+import subprocess
+import macos_pkg_builder
 
 from pathlib import Path
 
@@ -127,89 +128,40 @@ class GeneratePrivileges:
         if Path(PKG_BUILD_PATH).exists():
             subprocess.run(["rm", "-rf", PKG_BUILD_PATH])
 
-        # Prepare scripts
-        for script in ["preinstall", "postinstall"]:
-            subprocess.run(["chmod", "+x", Path(INSTALL_SCRIPTS_PATH, script)])
-        subprocess.run(["chmod", "+x", Path(UNINSTALL_SCRIPTS_PATH, "preinstall")])
+        Path(PKG_BUILD_PATH).mkdir(parents=True, exist_ok=True)
 
         print("PKG: Building uninstaller...")
-        Path(PKG_BUILD_PATH).mkdir(parents=True, exist_ok=True)
-        result = subprocess.run(
-            ["/usr/bin/pkgbuild",
-             "--scripts", UNINSTALL_SCRIPTS_PATH,
-             "--identifier", "com.ripeda.privileges-client-uninstaller",
-             "--version", self._version,
-             "--install-location", "/", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"),
-             "--nopayload"
-             ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if result.returncode != 0:
-            print("Failed to build uninstaller.")
-            print(result.stdout)
-            if result.stderr:
-                print(result.stderr)
+        pkg_obj = macos_pkg_builder.Packages(
+            pkg_output=Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"),
+            pkg_bundle_id="com.ripeda.privileges-client-uninstaller",
+            pkg_version=self._version,
+            pkg_preinstall_script=Path(UNINSTALL_SCRIPTS_PATH, "preinstall"),
+            **({"pkg_signing_identity": self._pkg_codesign_identity} if self._pkg_codesign_identity is not None else {})
+        )
+        if pkg_obj.build() is False:
+            print("Error creating uninstall pkg.")
             sys.exit(1)
-
-        # productsign
-        if self._pkg_codesign_identity is not None:
-            print("PKG: Signing uninstaller...")
-            result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client-signed.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode != 0:
-                print("Failed to sign uninstaller.")
-                print(result.stdout)
-                if result.stderr:
-                    print(result.stderr)
-                sys.exit(1)
-            subprocess.run(["rm", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg")])
-            subprocess.run(["mv", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client-signed.pkg"), Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg")])
-
 
         for variant in ["Debug", "Release"]:
             print(f"PKG: Building {variant} variant...")
 
-            # Create package directory structure
-            Path(PKG_BUILD_PATH, variant, "Applications").mkdir(parents=True, exist_ok=True)
-            Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents").mkdir(parents=True, exist_ok=True)
-            Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client").mkdir(parents=True, exist_ok=True)
-
-            # Copy application to package directory
-            subprocess.run(["cp", "-R", Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"), Path(PKG_BUILD_PATH, variant, "Applications")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-            # Copy launch agents
-            for agent in Path(LAUNCH_AGENTS).glob("*.plist"):
-                subprocess.run(["cp", agent, Path(PKG_BUILD_PATH, variant, "Library/LaunchAgents")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-            # Copy uninstaller to package directory
-            subprocess.run(["cp", Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"), Path(PKG_BUILD_PATH, variant, "Library/Application Support/RIPEDA/RIPEDA Client")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-            # Build package
-            result = subprocess.run(
-                ["/usr/bin/pkgbuild",
-                 "--component-plist", COMPONENT_PATH,
-                 "--root", Path(PKG_BUILD_PATH, variant),
-                 "--scripts", INSTALL_SCRIPTS_PATH,
-                 "--identifier", "com.ripeda.privileges-client-installer",
-                 "--version", self._version,
-                 "--install-location", "/", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode != 0:
-                print("Failed to build package.")
-                print(result.stdout)
-                if result.stderr:
-                    print(result.stderr)
+            pkg_obj = macos_pkg_builder.Packages(
+                pkg_output=Path(PKG_BUILD_PATH, f"Install-RIPEDA-Privileges-Client-{variant}.pkg"),
+                pkg_bundle_id="com.ripeda.privileges-client-installer",
+                pkg_version=self._version,
+                pkg_preinstall_script=Path(INSTALL_SCRIPTS_PATH, "preinstall"),
+                pkg_postinstall_script=Path(INSTALL_SCRIPTS_PATH, "postinstall"),
+                pkg_file_structure={
+                    Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"): "/Applications",
+                    Path(LAUNCH_AGENTS): "/Library/LaunchAgents",
+                    Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"): "/Library/Application Support/RIPEDA/RIPEDA Client",
+                },
+                pkg_allow_relocation=False,
+                **({"pkg_signing_identity": self._pkg_codesign_identity} if self._pkg_codesign_identity is not None else {})
+            )
+            if pkg_obj.build() is False:
+                print(f"Error creating install pkg for {variant} variant.")
                 sys.exit(1)
-
-            # productsign
-            if self._pkg_codesign_identity is not None:
-                print(f"PKG: Signing {variant} variant...")
-                result = subprocess.run(["/usr/bin/productsign", "--sign", self._pkg_codesign_identity, Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg"), Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}-signed.pkg")], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if result.returncode != 0:
-                    print("Failed to sign package.")
-                    print(result.stdout)
-                    if result.stderr:
-                        print(result.stderr)
-                    sys.exit(1)
-                subprocess.run(["rm", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")])
-                subprocess.run(["mv", Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}-signed.pkg"), Path(PKG_BUILD_PATH, variant, f"../Install-RIPEDA-Privileges-Client-{variant}.pkg")])
 
 
 if __name__ == "__main__":
