@@ -200,9 +200,9 @@ class GeneratePrivileges:
                 pkg_preinstall_script=Path(INSTALL_SCRIPTS_PATH, "preinstall"),
                 pkg_postinstall_script=Path(INSTALL_SCRIPTS_PATH, "postinstall"),
                 pkg_file_structure={
-                    Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"): "/Applications",
-                    Path(LAUNCH_AGENTS): "/Library/LaunchAgents",
-                    Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"): "/Library/Application Support/RIPEDA/RIPEDA Client",
+                    Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app"): "/Applications/Privileges.app",
+                    Path(LAUNCH_AGENTS, "com.ripeda.privileges-menubar.plist"): "/Library/LaunchAgents/com.ripeda.privileges-menubar.plist",
+                    Path(PKG_BUILD_PATH, "Uninstall-RIPEDA-Privileges-Client.pkg"): "/Library/Application Support/RIPEDA/RIPEDA Client/Uninstall-RIPEDA-Privileges-Client.pkg",
                 },
                 pkg_allow_relocation=False,
                 **({"pkg_signing_identity": self._pkg_codesign_identity} if self._pkg_codesign_identity is not None else {})
