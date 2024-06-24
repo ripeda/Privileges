@@ -2,8 +2,7 @@
 
 ## 1.6.2
 - Switch to Developer ID certificates for signing
-- Add backend for Notarization support
-  - Currently disabled until App/XPC signing is resolved
+- Add Notarization support
 
 ## 1.6.1
 - Rename `TimerLength` key to `MenubarTimeout`

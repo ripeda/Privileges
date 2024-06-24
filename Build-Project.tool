@@ -7,9 +7,9 @@ import argparse
 import threading
 import subprocess
 import macos_pkg_builder
+import mac_signing_buddy
 
 from pathlib import Path
-
 
 
 PROJECT_SOURCE: str = "source/Privileges.xcodeproj"
@@ -20,7 +20,6 @@ PKG_BUILD_PATH: str = "products/Package"
 
 INSTALL_SCRIPTS_PATH:   str = "source/Scripts (Install)"
 UNINSTALL_SCRIPTS_PATH: str = "source/Scripts (Uninstall)"
-COMPONENT_PATH:         str = "source/component.plist"
 MENUBAR_ICONS_PATH:     str = "source/Support Icons"
 LAUNCH_AGENTS:          str = "source/Support LaunchAgents"
 
@@ -30,51 +29,7 @@ NOTARIZATION_APPLE_ID: str = None
 NOTARIZATION_PASSWORD: str = None
 
 
-class Notarize:
-
-    def __init__(self, file: str) -> None:
-        self._file     = file
-        self._apple_id = NOTARIZATION_APPLE_ID
-        self._password = NOTARIZATION_PASSWORD
-        self._team_id  = NOTARIZATION_TEAM_ID
-
-
-    def sign(self) -> None:
-        if any([self._apple_id is None, self._password is None, self._team_id is None]):
-            print("Error: Notarization credentials not provided, skipping")
-            return
-
-        arguments = [
-            "xcrun", "notarytool", "submit", self._file, "--apple-id", self._apple_id, "--password", self._password, "--team-id", self._team_id, "--wait"
-        ]
-        result = subprocess.run(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if result.returncode != 0:
-            print(f"Error notarizing: {result.stderr.decode('utf-8')}")
-            sys.exit(1)
-        if "status: Accepted" not in result.stdout.decode("utf-8"):
-            print(f"Error notarizing: {self._fetch_error(self._decode_id_from_stdout(result.stdout.decode('utf-8')))}")
-            sys.exit(1)
-
-
-    def _decode_id_from_stdout(self, stdout: str) -> str:
-        """
-        Extract the ID from the stdout
-        """
-        for line in stdout.split("\n"):
-            if line.startswith("  id: "):
-                return line[6:]
-        return None
-
-
-    def _fetch_error(self, id: str) -> str:
-        result = subprocess.run(["xcrun", "notarytool", "log", id, "--apple-id", self._apple_id, "--password", self._password, "--team-id", self._team_id], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if result.returncode != 0:
-            return result.stderr.decode("utf-8")
-        return result.stdout.decode("utf-8")
-
-
 class GeneratePrivileges:
-
 
     def __init__(self, app_codesign_identity: str, pkg_codesign_identity: str) -> None:
         """
@@ -120,52 +75,32 @@ class GeneratePrivileges:
         """
 
         if Path(APP_BUILD_PATH).exists():
-            subprocess.run(["rm", "-rf", APP_BUILD_PATH])
-
-        threads = []
-        identity = self._app_codesign_identity
+            subprocess.run(["/bin/rm", "-rf", APP_BUILD_PATH])
 
         for variant in ["Debug", "Release"]:
+            print(f"APP: Building {variant} variant...")
+            result = subprocess.run(["/usr/bin/xcodebuild", "build", "-project", PROJECT_SOURCE, "-scheme", PROJECT_SCHEME, "-derivedDataPath", APP_BUILD_PATH + "/" + variant, "-configuration", variant], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode != 0:
+                print("Failed to build application.")
+                print(result.stdout)
+                if result.stderr:
+                    print(result.stderr)
+                sys.exit(1)
 
-            def _build(self, variant) -> None:
-                print(f"APP: Building {variant} variant...")
-                result = subprocess.run(["/usr/bin/xcodebuild", "build", "-project", PROJECT_SOURCE, "-scheme", PROJECT_SCHEME, "-derivedDataPath", APP_BUILD_PATH + "/" + variant, "-configuration", variant], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if result.returncode != 0:
-                    print("Failed to build application.")
-                    print(result.stdout)
-                    if result.stderr:
-                        print(result.stderr)
-                    sys.exit(1)
+            # app Menubar icon
+            for icon in Path(MENUBAR_ICONS_PATH).glob("*.icns"):
+                subprocess.run(["/bin/cp", icon, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app", "Contents", "Resources", icon.name)])
 
-                # app Menubar icon
-                for icon in Path(MENUBAR_ICONS_PATH).glob("*.icns"):
-                    subprocess.run(["cp", icon, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app", "Contents", "Resources", icon.name)])
-
-                print(f"APP: Signing {variant} variant...")
-                apps_to_sign = [
-                    "Privileges.app",
-                    "Privileges.app/Contents/Resources/PrivilegesCLI",
-                    "Privileges.app/Contents/Resources/PrivilegesMenubar",
-                    "Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc",
-                    "Privileges.app/Contents/PlugIns/PrivilegesTile.docktileplugin",
-                    "Privileges.app/Contents/XPCServices/PrivilegesXPC.xpc/Contents/Library/LaunchServices/com.ripeda.privileges.helper",
-                ]
-                for app in apps_to_sign:
-                    print(f"APP:   Signing {app if '/' not in app else app.split('/')[-1]}...")
-                    result = subprocess.run(["/usr/bin/codesign", "--force", "--sign", identity, Path(APP_BUILD_PATH, variant, "Build", "Products", variant, app)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    if result.returncode != 0:
-                        print("Failed to codesign application.")
-                        print(result.stdout)
-                        if result.stderr:
-                            print(result.stderr)
-                        sys.exit(1)
-
-            thread = threading.Thread(target=_build, args=(self, variant))
-            thread.start()
-            threads.append(thread)
-
-        while any(thread.is_alive() for thread in threads):
-            time.sleep(1)
+            print(f"APP: Signing {variant} variant...")
+            for resource in [
+                "XPCServices/PrivilegesXPC.xpc/Contents/Library/LaunchServices/com.ripeda.privileges.helper",
+                "Resources/PrivilegesMenubar",
+                "Resources/PrivilegesCLI"
+            ]:
+                mac_signing_buddy.Sign(file=Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app", "Contents", resource).resolve(), identity=self._app_codesign_identity).sign()
+            mac_signing_buddy.Sign(file=Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app").resolve(), identity=self._app_codesign_identity).sign()
+            print(f"APP: Notarizing {variant} variant...")
+            mac_signing_buddy.Notarize(file=Path(APP_BUILD_PATH, variant, "Build", "Products", variant, "Privileges.app").resolve(), apple_id=NOTARIZATION_APPLE_ID, password=NOTARIZATION_PASSWORD, team_id=NOTARIZATION_TEAM_ID).sign()
 
 
     def _build_package(self) -> None:
@@ -174,7 +109,7 @@ class GeneratePrivileges:
         """
 
         if Path(PKG_BUILD_PATH).exists():
-            subprocess.run(["rm", "-rf", PKG_BUILD_PATH])
+            subprocess.run(["/bin/rm", "-rf", PKG_BUILD_PATH])
 
         Path(PKG_BUILD_PATH).mkdir(parents=True, exist_ok=True)
 
@@ -210,6 +145,9 @@ class GeneratePrivileges:
             if pkg_obj.build() is False:
                 print(f"Error creating install pkg for {variant} variant.")
                 sys.exit(1)
+
+            print(f"PKG: Notarizing {variant} variant...")
+            mac_signing_buddy.Notarize(file=Path(PKG_BUILD_PATH, f"Install-RIPEDA-Privileges-Client-{variant}.pkg").resolve(), apple_id=NOTARIZATION_APPLE_ID, password=NOTARIZATION_PASSWORD, team_id=NOTARIZATION_TEAM_ID).sign()
 
 
 if __name__ == "__main__":
