@@ -35,7 +35,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip3 install macos-pkg-builder
+        run: pip3 install --requirement requirements.txt
 
       - name: Import Application Distribution Certificate
         uses: dhinakg/import-codesign-certs@master
